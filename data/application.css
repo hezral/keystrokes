@@ -1,0 +1,186 @@
+
+headerbar#main button {
+    color: white;
+}
+
+window#main, headerbar#main {
+    color: white;
+    border-radius: 4px;
+    box-shadow: none;
+}
+
+headerbar#main.titlebar {
+    background-color: transparent;
+}
+
+window#main.background {
+    background-color: rgba(0,0,0, 0.75);
+}
+
+@keyframes crossfader {
+    0% { opacity: 0; } 
+    03.33% { opacity: 0; }
+    06.66% { opacity: 0; }
+    09.99% { opacity: 0; }
+    13.33% { opacity: 0; }
+    16.65% { opacity: 0.75; }
+    100% { opacity: 1; }	
+}
+
+grid#key-container {
+    font-weight: bolder;
+    color: rgb(42,42,42);
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 1);
+    background: rgb(198,198,198);
+    background: 
+        linear-gradient(
+            180deg, 
+            rgba(198,198,198,1) 0%, 
+            rgba(198,198,198,1) 35%, 
+            rgba(223,223,223,1) 100%);
+    /* background: shade(@theme_bg_color,0.5);
+    background: 
+        linear-gradient(
+            180deg, 
+            alpha(@theme_bg_color, 0.06) 0%, 
+            alpha(@theme_bg_color, 0.07) 100%); */
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-top-color: white;
+    border-bottom-color: gray;
+    border-bottom-width: 4px;
+    border-top-width: 2px;
+    border-radius: 5px;
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.5),
+        0 2px 5px  rgba(0,0,0,0.5),
+        0 2px 5px  rgba(0,0,0,0.5),
+        0 14px 28px  rgba(0,0,0,0);
+    animation: crossfader 0.25s ease-in-out forwards;
+}
+
+grid#mouse-container {
+    font-weight: bolder;
+    color: rgb(42,42,42);
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 1);
+    background: rgb(224, 224, 224);
+    background: 
+        linear-gradient(
+            180deg, 
+            rgba(223,223,223,1) 0%, 
+            rgba(224, 224, 224, 1) 35%, 
+            rgba(223,223,223,1) 100%);
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-top-color: white;
+    border-bottom-color: gray;
+    border-bottom-width: 4px;
+    border-top-width: 2px;
+    border-top-left-radius: 56px;
+    border-top-right-radius: 56px;
+    border-bottom-left-radius: 56px;
+    border-bottom-right-radius: 56px;
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.5),
+        0 2px 5px  rgba(0,0,0,0.5),
+        0 2px 5px  rgba(0,0,0,0.5),
+        0 14px 28px  rgba(0,0,0,0);
+    animation: crossfader 0.25s ease-in-out forwards;
+}
+
+label#single-key {
+    font-size: 250%;
+}
+
+label#mod-key {
+    font-size: 180%;
+}
+
+label#on-state {
+    font-weight: bolder;
+    text-shadow: 0px 0px 3px rgba(0,255,4,1);
+    color: rgba(0,255,4,1);
+    font-size: 300%;
+}
+
+label#default-state {
+    /* text-shadow: 0px 0px 5px rgba(0,255,4,1); */
+    font-weight: normal;
+    font-size: 300%;
+}
+
+label#symbol {
+    font-size: 200%;
+}
+
+label#standby {
+    font-size: 300%;
+    letter-spacing: 2px;
+    animation: pulsating 2.25s ease-in-out infinite;
+}
+
+.screen-display {
+    background-image:
+        linear-gradient(
+            to bottom,
+            alpha (@accent_color_500, 0.1),
+            alpha (@accent_color_500, 0.1)
+        );
+    /* background-repeat: no-repeat;
+    background-position: -32px -32px, -32px calc(100% + 32px), calc(100% + 32px) -32px, calc(100% + 32px) calc(100% + 32px), 0;
+    background-size: 64px 64px, 64px 64px, 64px 64px, 64px 64px, cover; */
+}
+
+.position-default {
+    color: white;
+    border-color: black;
+    background-color: black;
+    box-shadow:
+            0 0 0 1px rgba(0,0,0,0.5),
+            0 2px 5px  rgba(0,0,0,0.2),
+            0 2px 5px  rgba(0,0,0,0.4),
+            0 14px 28px  rgba(0,0,0,0);
+    opacity: 0;
+}
+
+.position-selected {
+    opacity: 1;
+}
+
+.position-hover {
+    opacity: 0.5;
+}
+
+@keyframes pulsating {   
+    25% {opacity: 0.25;}
+    75% {opacity: 0.75;}
+    100% {opacity: 1.00;}
+}
+
+label#repeat-counter {
+    padding: 5px;
+    padding-left: 9px;
+    padding-right: 9px;
+    border-radius: 14px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: alpha(@accent_color_700, 0.75);
+    background-color: @accent_color_500;
+}
+
+label#settings-group-label {
+    font-weight: bold;
+    opacity: 0.75;
+}
+
+frame#settings-group-frame {
+    border-radius: 4px;
+    border-color: rgba(0, 0, 0, 0.3);
+    background-color: @shaded_dark;
+}
+
+.settings-sub-label {
+    /* font-style: italic; */
+    font-size: 0.9em;
+    color: gray;
+}

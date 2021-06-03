@@ -1,0 +1,7 @@
+data/com.github.hezral.keystrokes.desktop.in
+data/com.github.hezral.keystrokes.appdata.xml.in
+data/com.github.hezral.keystrokes.gschema.xml
+src/main.py
+src/window.py
+src/custom_widgets.py
+

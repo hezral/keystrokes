@@ -1,0 +1,51 @@
+app-id: com.github.hezral.keystrokes
+runtime: io.elementary.Sdk
+runtime-version: 'daily'
+sdk: io.elementary.Sdk
+command: keystrokes
+appstream-compose: false
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --share=network
+  - --device=dri
+  # needed for perfers-color-scheme
+  - --system-talk-name=org.freedesktop.Accounts
+modules:
+  - name: libhandy
+    buildsystem: meson
+    config-opts:
+      - -Dprofiling=false
+      - -Dintrospection=enabled
+      - -Dgtk_doc=false
+      - -Dtests=false
+      - -Dexamples=false
+      - -Dvapi=false
+      - -Dglade_catalog=disabled
+    sources:
+      - type: git
+        url: https://gitlab.gnome.org/GNOME/libhandy
+        tag: 1.0.0
+
+  - name: python-xlib
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+    build-commands:
+      - "pip3 install --prefix=${FLATPAK_DEST} python-xlib"
+
+  - name: pynput
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+    build-commands:
+      - "pip3 install --prefix=${FLATPAK_DEST} pynput"
+
+  - name: keystrokes
+    buildsystem: meson
+    sources:
+      - type: dir
+        path: .

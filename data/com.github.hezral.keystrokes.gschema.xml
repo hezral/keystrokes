@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="keystrokes">
+	<schema id="com.github.hezral.keystrokes" path="/com/github/hezral/keystrokes/">
+        <key type="b" name="sticky-mode">
+            <default>false</default>
+            <summary>Display app window on all workspaces</summary>
+            <description>Display Clips app window on all workspaces</description>
+        </key>
+        <key type="s" name="screen-position">
+            <default>"south-east"</default>
+            <summary>Screen position</summary>
+            <description>Screen position</description>
+        </key>
+        <key type="b" name="detect-words">
+            <default>true</default>
+            <summary>Detects words and group it to display</summary>
+            <description>Detects words and group it to display</description>
+        </key>
+        <key type="b" name="monitor-keys">
+            <default>true</default>
+            <summary>Monitor key press</summary>
+            <description>Monitor key press</description>
+        </key>
+        <key type="b" name="monitor-clicks">
+            <default>true</default>
+            <summary>Monitor mouse clicks</summary>
+            <description>Monitor mouse clicks</description>
+        </key>
+        <key type="b" name="monitor-scrolls">
+            <default>false</default>
+            <summary>Monitor mouse scrolls</summary>
+            <description>Monitor mouse scrolls</description>
+        </key>
+        <key type="i" name="display-timeout">
+            <default>1000</default>
+            <summary>How long to until key is removed</summary>
+            <description>How long to until key is removed</description>
+        </key>
+        <key type="i" name="display-transparency">
+            <default>75</default>
+            <summary>Customize window transparency</summary>
+            <description>Customize window transparency</description>
+        </key>
+	</schema>
+</schemalist>
