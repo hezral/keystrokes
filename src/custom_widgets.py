@@ -456,14 +456,11 @@ class SettingsGroup(Gtk.Grid):
         grid = Gtk.Grid()
         grid.props.margin = 8
         grid.props.hexpand = True
+        grid.props.row_spacing = 8
         grid.props.column_spacing = 10
 
         i = 0
         for subsetting in subsettings_list:
-            # if subsetting.type is None or hasattr(subsetting, "type") is False:
-            #     subsetting.props.margin_top = 0
-            # else:
-            #     subsetting.props.margin_top = 8
             grid.attach(subsetting, 0, i, 1, 1)
             i += 1
 
@@ -560,9 +557,12 @@ class SubSettings(Gtk.Grid):
         # SubSettings construct---
         self.props.name = name
         self.props.hexpand = True
-        self.props.row_spacing = 8
-        self.props.column_spacing = 10
-        self.attach(box, 0, 0, 1, 2)
+        if type == None:
+            self.attach(box, 0, 0, 1, 1)
+        else:
+            self.props.row_spacing = 8
+            self.props.column_spacing = 10
+            self.attach(box, 0, 0, 1, 2)
 
 
 class Settings(Gtk.Grid):
@@ -579,7 +579,6 @@ class Settings(Gtk.Grid):
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
         self.screen_icon.props.height_request = 198
         self.screen_icon.props.width_request = 292
-
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
@@ -630,7 +629,6 @@ class Settings(Gtk.Grid):
 
         position_label = SubSettings(type=None, name="position-label", label="Screen position", sublabel=None, separator=False, params=None)
 
-
         monitor_label = SubSettings(type=None, name="monitor-label", label="Event monitoring", sublabel=None, separator=False, params=None)
         
         monitor_scrolls = SubSettings(type="checkbutton", name="monitor-scrolls", label=None, sublabel=None, separator=False, params=("Scrolls",))
@@ -664,6 +662,7 @@ class Settings(Gtk.Grid):
         self.app.gio_settings.bind("display-timeout", display_timeout.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
         
         display_transparency = SubSettings(type="spinbutton", name="display-transparency", label="Display transparency", sublabel="Customize window transparency", separator=True, params=(0,100,1))
+        display_transparency.spinbutton.connect("value-changed", self.on_spinbutton_activated)
         self.app.gio_settings.bind("display-transparency", display_transparency.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
 
         display_transparency_slider = Gtk.Scale().new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
@@ -672,12 +671,6 @@ class Settings(Gtk.Grid):
 
         display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, display_timeout, display_transparency, position_label, self.screen_icon))
         self.add(display_behaviour_settings)
-
-        # self.add(self.screen_icon)
-        # self.add(screen_position_headerlabel)
-        # self.add(monitor_mouse_scroll_checkbutton)
-        # self.add(monitor_keyboard_button)
-        # self.add(monitor_mouse_button)
 
 
     def on_screen_position_clicked(self, eventbox, eventbutton):
@@ -695,14 +688,13 @@ class Settings(Gtk.Grid):
     
     def on_switch_activated(self, switch, gparam):
         name = switch.get_name()
-        main_window = self.get_toplevel()
         
         if self.is_visible():
             if name == "sticky-mode":
                 if switch.get_active():
-                    main_window.stick()
+                    self.app.main_window.stick()
                 else:
-                    main_window.unstick()
+                    self.app.main_window.unstick()
 
             if name == "monitor-scrolls":
                 self.app.main_window.setup_mouse_listener()
@@ -723,3 +715,12 @@ class Settings(Gtk.Grid):
 
         if name == "monitor-keys":
             self.app.main_window.setup_keyboard_listener()
+
+
+    def on_spinbutton_activated(self, spinbutton):        
+        name = spinbutton.get_name()
+
+        if self.is_visible():
+            if name == "display-transparency":
+                transparency_value = float(spinbutton.props.value/100)
+                self.app.main_window.setup_ui(transparency_value)

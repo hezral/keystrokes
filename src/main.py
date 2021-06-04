@@ -25,6 +25,7 @@ gi.require_version('Granite', '1.0')
 from gi.repository import Gtk, Gdk, Gio, Granite, GLib
 
 from .window import KeystrokesWindow
+from .utils import *
 
 
 class Application(Gtk.Application):
@@ -40,16 +41,20 @@ class Application(Gtk.Application):
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
         
         prefers_color_scheme = self.granite_settings.get_prefers_color_scheme()
+        # prefers_accent_color = self.granite_settings.get_prefers_accent_color()
         self.gtk_settings.set_property("gtk-application-prefer-dark-theme", prefers_color_scheme)
         # self.granite_settings.connect("notify::prefers-color-scheme", self.on_prefers_color_scheme)
 
-        provider = Gtk.CssProvider()        
-        provider.load_from_path(os.path.join(os.path.dirname(__file__), "data", "application.css"))
-        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_path(os.path.join(os.path.dirname(__file__), "data", "application.css"))
+        Gtk.StyleContext.add_provider_for_screen(Gdk.Screen.get_default(), self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         self.icon_theme = Gtk.IconTheme.get_default()
         self.icon_theme.prepend_search_path(os.path.join(os.path.dirname(__file__), "data", "icons"))
 
+        # print(self.gtk_settings.props.gtk_theme_name)
+        if "io.elementary.stylesheet" not in self.gtk_settings.props.gtk_theme_name:
+            self.gtk_settings.set_property("gtk-theme-name", "io.elementary.stylesheet.banana")
 
     def do_activate(self):
         # win = self.props.active_window

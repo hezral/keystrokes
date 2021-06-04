@@ -54,9 +54,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         self.app = self.props.application
 
-        self.setup_keyboard_listener()
-        self.setup_mouse_listener()
-
         self.header = self.generate_headerbar()
 
         self.key_grid = Gtk.Grid()
@@ -85,22 +82,30 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         self.add(grid)
         self.props.name = "main"
+        self.setup_ui()
         self.show_all()
         self.set_resizable(False)
         self.set_keep_above(True)
         self.set_size_request(320, 240)
         self.connect("destroy", Gtk.main_quit)
         self.connect("button-press-event", self.show_window_controls)
+        # self.connect("screen-changed", self.on_screen_changed)
         self.reposition(self.app.gio_settings.get_string("screen-position"))
+        if self.app.gio_settings.get_value("sticky-mode"):
+            self.stick()
 
-    def setup_keyboard_listener(self):
+        GLib.timeout_add(500, self.setup_keyboard_listener, None)
+        GLib.timeout_add(1000, self.setup_mouse_listener, None)
+
+
+    def setup_keyboard_listener(self, *args):
         if self.key_listener is not None:
             self.key_listener.listener.stop()
             self.key_listener = None
         if self.app.gio_settings.get_value("monitor-keys"):
             self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
 
-    def setup_mouse_listener(self):
+    def setup_mouse_listener(self, *args):
         if self.mouse_listener is not None:
             self.mouse_listener.listener.stop()
             self.mouse_listener = None
@@ -110,6 +115,21 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.mouse_listener = MouseListener(None, None, self.on_mouse_scroll)
         elif not self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
             self.mouse_listener = MouseListener(None, self.on_mouse_click, None)
+
+    def setup_ui(self, transparency_value=None):
+        if transparency_value is None:
+            transparency_value = float(self.app.gio_settings.get_int("display-transparency")/100)
+        css = "window#main.background {background-color: rgba(0,0,0," + str(transparency_value) + ");}"
+        # if transparency_value == 0.0:
+            # print(transparency_value)
+            # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 0px rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 16px  rgba(0,0,0,0);}"
+            # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 1px rgba(0,0,0,0), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0), 0 3px 3px -3px rgba(0,0,0,0);}"
+            # css = css + "\n" + "window > decoration {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
+            # css = css + "\n" + "window > decoration-overlay {box-shadow: 0 -1px rgba(255,255,255,0.04) inset, 0 1px rgba(255,255,255,0.06) inset, 1px 0 rgba(255,255,255,0.014) inset, -1px 0 rgba(255,255,255,0.14) inset;}"
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(bytes(css.encode()))
+        self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+
 
     def generate_headerbar(self):
         settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("com.github.hezral-settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
@@ -212,11 +232,16 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def on_settings_clicked(self, button):
         self.generate_settings_dialog()
 
+    def on_screen_changed(self, widget, previous_screen):
+        print(previous_screen)
+        self.reposition(self.app.gio_settings.get_string("screen-position"))
+
     def on_stack_view(self, *args):
         if self.stack.get_visible_child_name() == "key-grid" and len(self.key_grid.get_children()) == 0:
             self.stack.set_visible_child_name("standby")
         else:
             self.stack.set_visible_child_name("key-grid")
+        self.reposition(self.app.gio_settings.get_string("screen-position"))
 
     def on_event(self):
         keystrokes_window = utils.get_window_by_gtk_application_id_xlib("com.github.hezral.keystrokes")
