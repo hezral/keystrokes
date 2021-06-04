@@ -52,9 +52,8 @@ class Application(Gtk.Application):
         self.icon_theme = Gtk.IconTheme.get_default()
         self.icon_theme.prepend_search_path(os.path.join(os.path.dirname(__file__), "data", "icons"))
 
-        # print(self.gtk_settings.props.gtk_theme_name)
         if "io.elementary.stylesheet" not in self.gtk_settings.props.gtk_theme_name:
-            self.gtk_settings.set_property("gtk-theme-name", "io.elementary.stylesheet.banana")
+            self.gtk_settings.set_property("gtk-theme-name", "io.elementary.stylesheet.blueberry")
 
     def do_activate(self):
         # win = self.props.active_window
