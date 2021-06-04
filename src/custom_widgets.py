@@ -629,6 +629,10 @@ class Settings(Gtk.Grid):
 
         position_label = SubSettings(type=None, name="position-label", label="Screen position", sublabel=None, separator=False, params=None)
 
+        auto_position = SubSettings(type="switch", name="auto-position", label="Auto position", sublabel="Revert to initial position",separator=True)
+        auto_position.switch.connect_after("notify::active", self.on_switch_activated)
+        self.app.gio_settings.bind("auto-position", auto_position.switch, "active", Gio.SettingsBindFlags.DEFAULT)
+
         monitor_label = SubSettings(type=None, name="monitor-label", label="Event monitoring", sublabel=None, separator=False, params=None)
         
         monitor_scrolls = SubSettings(type="checkbutton", name="monitor-scrolls", label=None, sublabel=None, separator=False, params=("Scrolls",))
@@ -654,6 +658,8 @@ class Settings(Gtk.Grid):
         monitor_grid.attach(monitor_clicks, 1, 0, 1, 1)
         monitor_grid.attach(monitor_keys, 2, 0, 1, 1)
         
+
+
         sticky_mode = SubSettings(type="switch", name="sticky-mode", label="Sticky mode", sublabel="Display on all workspaces",separator=True)
         sticky_mode.switch.connect_after("notify::active", self.on_switch_activated)
         self.app.gio_settings.bind("sticky-mode", sticky_mode.switch, "active", Gio.SettingsBindFlags.DEFAULT)
@@ -669,7 +675,7 @@ class Settings(Gtk.Grid):
         display_transparency_slider.props.draw_value = False
         
 
-        display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, display_timeout, display_transparency, position_label, self.screen_icon))
+        display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, display_timeout, display_transparency, auto_position, position_label, self.screen_icon))
         self.add(display_behaviour_settings)
 
 

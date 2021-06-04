@@ -11,6 +11,11 @@
             <summary>Screen position</summary>
             <description>Screen position</description>
         </key>
+        <key type="b" name="auto-position">
+            <default>true</default>
+            <summary>Revert to initial position</summary>
+            <description>Revert to initial position</description>
+        </key>
         <key type="b" name="detect-words">
             <default>true</default>
             <summary>Detects words and group it to display</summary>

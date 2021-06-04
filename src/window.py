@@ -120,12 +120,17 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         if transparency_value is None:
             transparency_value = float(self.app.gio_settings.get_int("display-transparency")/100)
         css = "window#main.background {background-color: rgba(0,0,0," + str(transparency_value) + ");}"
-        # if transparency_value == 0.0:
-            # print(transparency_value)
-            # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 0px rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 16px  rgba(0,0,0,0);}"
-            # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 1px rgba(0,0,0,0), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0), 0 3px 3px -3px rgba(0,0,0,0);}"
-            # css = css + "\n" + "window > decoration {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
-            # css = css + "\n" + "window > decoration-overlay {box-shadow: 0 -1px rgba(255,255,255,0.04) inset, 0 1px rgba(255,255,255,0.06) inset, 1px 0 rgba(255,255,255,0.014) inset, -1px 0 rgba(255,255,255,0.14) inset;}"
+        # if transparency_value <= 0.1:
+        #     print(transparency_value)
+        #     css = css + "\n" + "headerbar#main button {" + "color: black;}"
+        #     css = css + "\n" + "headerbar#main button {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
+        #     # print(transparency_value)
+        #     # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 0px rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 16px  rgba(0,0,0,0);}"
+        #     # css = css + "\n" + "window > decoration, window > decoration-overlay {box-shadow: 0 0 0 1px rgba(0,0,0,0), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0), 0 3px 3px -3px rgba(0,0,0,0);}"
+        #     # css = css + "\n" + "window > decoration {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
+        #     # css = css + "\n" + "window > decoration-overlay {box-shadow: 0 -1px rgba(255,255,255,0.04) inset, 0 1px rgba(255,255,255,0.06) inset, 1px 0 rgba(255,255,255,0.014) inset, -1px 0 rgba(255,255,255,0.14) inset;}"
+        # else:
+        #     css = css + "\n" + "headerbar#main button {" + "color: white;}"
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(bytes(css.encode()))
         self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
@@ -241,7 +246,10 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.stack.set_visible_child_name("standby")
         else:
             self.stack.set_visible_child_name("key-grid")
-        self.reposition(self.app.gio_settings.get_string("screen-position"))
+        if self.app.gio_settings.get_value("auto-position"):
+            self.reposition(self.app.gio_settings.get_string("screen-position"))
+        else:
+            self.set_position(Gtk.WindowPosition.NONE)
 
     def on_event(self):
         keystrokes_window = utils.get_window_by_gtk_application_id_xlib("com.github.hezral.keystrokes")
