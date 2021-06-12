@@ -21,6 +21,11 @@
             <summary>Detects words and group it to display</summary>
             <description>Detects words and group it to display</description>
         </key>
+        <key type="b" name="monitor-repeatkeys">
+            <default>false</default>
+            <summary>Monitor repeated key press (experimental)</summary>
+            <description>Monitor repeated key press (experimental)</description>
+        </key>
         <key type="b" name="monitor-keys">
             <default>true</default>
             <summary>Monitor key press</summary>

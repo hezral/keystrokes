@@ -467,6 +467,12 @@ class Settings(Gtk.Grid):
         monitor_keys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-keys", monitor_keys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
+        monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Repeats",))
+        monitor_repeatkeys.props.has_tooltip = True
+        monitor_repeatkeys.props.tooltip_text = "Experimental, may cause app freezes/crashes"
+        monitor_repeatkeys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        self.app.gio_settings.bind("monitor-repeatkeys", monitor_repeatkeys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
+
         monitor_separator = SubSettings(type=None, name="dummy-setting", label=None, sublabel=None, separator=True, params=None)
 
         monitor_grid = Gtk.Grid()
@@ -477,6 +483,7 @@ class Settings(Gtk.Grid):
         monitor_grid.attach(monitor_scrolls, 0, 0, 1, 1)
         monitor_grid.attach(monitor_clicks, 1, 0, 1, 1)
         monitor_grid.attach(monitor_keys, 2, 0, 1, 1)
+        monitor_grid.attach(monitor_repeatkeys, 3, 0, 1, 1)
         
 
 
