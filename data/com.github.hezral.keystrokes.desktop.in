@@ -1,8 +1,8 @@
 [Desktop Entry]
-Name=keystrokes
+Name=Keystrokes
 Exec=keystrokes
 Icon=com.github.hezral.keystrokes
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=Accessibility;
 StartupNotify=true
