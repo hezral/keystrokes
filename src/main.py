@@ -42,9 +42,8 @@ class Application(Gtk.Application):
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
         
         prefers_color_scheme = self.granite_settings.get_prefers_color_scheme()
-        # prefers_accent_color = self.granite_settings.get_prefers_accent_color()
         self.gtk_settings.set_property("gtk-application-prefer-dark-theme", prefers_color_scheme)
-        # self.granite_settings.connect("notify::prefers-color-scheme", self.on_prefers_color_scheme)
+        self.granite_settings.connect("notify::prefers-color-scheme", self.on_prefers_color_scheme)
 
         self.css_provider = Gtk.CssProvider()
         self.css_provider.load_from_path(os.path.join(os.path.dirname(__file__), "data", "application.css"))
@@ -57,7 +56,6 @@ class Application(Gtk.Application):
             self.gtk_settings.set_property("gtk-theme-name", "io.elementary.stylesheet.blueberry")
 
     def do_activate(self):
-        # win = self.props.active_window
         if not self.main_window:
             self.main_window = KeystrokesWindow(application=self)
         self.main_window.present()
