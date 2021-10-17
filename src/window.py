@@ -255,12 +255,13 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.set_position(Gtk.WindowPosition.NONE)
 
     def on_event(self):
-        keystrokes_window = utils.get_window_id_by_gtk_application_id_xlib("com.github.hezral.keystrokes")
-        active_window = utils.get_active_window_id_xlib()
-        print(keystrokes_window, active_window)
-        if str(active_window) != str(keystrokes_window):
-            return True
-        return False
+        active_window_class = utils.get_active_window_wm_class()
+        if active_window_class is not None:
+            if self.app.app_id in active_window_class:
+                return False
+            else:
+                return True
+        # print("triggered at line: {0}, timestamp: {1}, keystrokes_window: {2}, active_window: {3}".format(getframeinfo(currentframe()).lineno, datetime.now(), keystrokes_window, active_window, active_window_class))
         
     def on_key_press(self, key):
         if self.on_event():
