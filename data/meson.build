@@ -1,9 +1,3 @@
-pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), meson.project_name())
-rdnn = meson.project_name().split('.')
-project_domain = '.'.join([rdnn[0],rdnn[1],rdnn[2]])
-project_short_name = rdnn[3]
-
-
 desktop_file = i18n.merge_file(
   input: 'com.github.hezral.keystrokes.desktop.in',
   output: 'com.github.hezral.keystrokes.desktop',
@@ -62,3 +56,17 @@ other_icon_sources = [
 ]
 iconsdir = join_paths(pkgdatadir, project_short_name, 'data', 'icons')
 install_data(other_icon_sources, install_dir: iconsdir)
+
+icon_sizes = ['16', '24', '32', '48', '64', '128']
+foreach i : icon_sizes
+    install_data(
+        join_paths('icons', i + '.svg'),
+        rename: meson.project_name() + '.svg',
+        install_dir: join_paths(get_option ('datadir'), 'icons', 'hicolor', i + 'x' + i, 'apps')
+    )
+    install_data(
+        join_paths('icons', i + '.svg'),
+        rename: meson.project_name() + '.svg',
+        install_dir: join_paths(get_option ('datadir'), 'icons', 'hicolor', i + 'x' + i + '@2', 'apps')
+    )
+endforeach
