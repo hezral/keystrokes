@@ -7,7 +7,10 @@ project('com.github.hezral.keystrokes',
 
 i18n = import('i18n')
 
-
+pkgdatadir = join_paths(get_option('prefix'), get_option('datadir'), meson.project_name())
+rdnn = meson.project_name().split('.')
+project_domain = '.'.join([rdnn[0],rdnn[1],rdnn[2]])
+project_short_name = rdnn[3]
 
 subdir('data')
 subdir('src')
