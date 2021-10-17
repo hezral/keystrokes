@@ -257,7 +257,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def on_event(self):
         active_window_class = utils.get_active_window_wm_class()
         if active_window_class is not None:
-            if self.app.app_id in active_window_class:
+            if self.app.app_id.split(".")[-1] in active_window_class:
                 return False
             else:
                 return True
