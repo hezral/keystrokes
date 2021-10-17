@@ -78,6 +78,8 @@ class CustomDialog(Gtk.Window):
             self.set_size_request(150,100)
 
         self.get_style_context().add_class("rounded")
+        self.get_style_context().add_class("custom-decoration")
+        self.get_style_context().add_class("custom-decoration-overlay")
         self.set_titlebar(self.header)
         self.props.transient_for = parent_window
         self.props.modal = True
