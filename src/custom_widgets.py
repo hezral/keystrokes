@@ -485,9 +485,7 @@ class Settings(Gtk.Grid):
         monitor_grid.attach(monitor_scrolls, 0, 0, 1, 1)
         monitor_grid.attach(monitor_clicks, 1, 0, 1, 1)
         monitor_grid.attach(monitor_keys, 2, 0, 1, 1)
-        monitor_grid.attach(monitor_repeatkeys, 3, 0, 1, 1)
-        
-
+        # monitor_grid.attach(monitor_repeatkeys, 3, 0, 1, 1)
 
         sticky_mode = SubSettings(type="switch", name="sticky-mode", label="Sticky mode", sublabel="Display on all workspaces",separator=True)
         sticky_mode.switch.connect_after("notify::active", self.on_switch_activated)
