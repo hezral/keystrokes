@@ -3,7 +3,6 @@ runtime: io.elementary.Platform
 runtime-version: '6'
 sdk: io.elementary.Sdk
 command: keystrokes
-appstream-compose: false
 finish-args:
   - --share=ipc
   - --socket=wayland
