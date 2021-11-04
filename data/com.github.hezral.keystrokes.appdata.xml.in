@@ -61,7 +61,7 @@
   </content_rating>
 
   <releases>
-    <release version="1.0.1" date="2021-11-03">
+    <release version="1.0.2" date="2021-11-05">
       <description>
         <p>First release!</p>
         <p>Fixed manifest and appdata</p>
@@ -71,7 +71,7 @@
 
   <custom>
     <value key="x-appcenter-color-primary">#212121</value>
-    <value key="x-appcenter-color-primary-text">#FFFFF</value>
+    <value key="x-appcenter-color-primary-text">#FFFFFF</value>
     <value key="x-appcenter-suggested-price">0.00</value>
     <value key="x-appcenter-stripe">pk_live_51J03F1AXT8Az6AYFEiPc5mgpv7vUSWDnw135TmPT4tUbB2CJLwG19e3NxEuC7Zbz3VkXg7BygUQOTf7x6UDhSAn8005gq9ywZy</value>
   </custom>
