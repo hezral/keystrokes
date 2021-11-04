@@ -247,7 +247,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 return False
             else:
                 return True
-        # print("triggered at line: {0}, timestamp: {1}, keystrokes_window: {2}, active_window: {3}".format(getframeinfo(currentframe()).lineno, datetime.now(), keystrokes_window, active_window, active_window_class))
         
     def on_key_press(self, key):
         if self.on_event():
@@ -260,55 +259,12 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 key = key.name
                 shape_type = "rectangle"
 
-            # GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            # GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-
             self.add_to_display(key, key_type, shape_type)
 
-            # if shape_type == "square":
-            #     GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #     GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            # else:
-            #     self.on_repeat_key(key_type, key, shape_type)
-                
             self.last_key = key
 
-            # self.word.append(key)
-            # if self.word_detect and shape_type == "square":
-
-            #     if len(self.word) == 0:
-            #         self.key_press_timestamp_old = datetime.now()
-
-            #     self.key_press_timestamp = datetime.now()
-                
-            #     self.key_press_timestamp_diff = int((self.key_press_timestamp-self.key_press_timestamp_old).total_seconds()*1000)
-                
-            #     print("key_press_timestamp_diff:", self.key_press_timestamp_diff)
-                
-            #     if self.key_press_timestamp_diff < self.key_press_timeout:
-            #         self.word.append(key)
-            #     else:
-            #         word = ''.join(self.word)
-            #         type = "square"
-            #         self.word = []
-                
-            #     # self.key_press_timestamp_old = self.key_press_timestamp
-            #     print(''.join(self.word))
-            # else:
-            #     self.word = []``
-
     def on_key_release(self, key):
-        # key_type = "keyboard"
-        # try:
-        #     key = key.char
-        #     shape_type = "square"
-        # except AttributeError:
-        #     key = key.name
-        #     shape_type = "rectangle"
         self.key_press_timestamp_old = datetime.now()
-
-        # if key != self.last_key:
-        #     GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
 
     def on_mouse_move(self, x, y):
         print('Pointer moved to {0}'.format((x, y)))
