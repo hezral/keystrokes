@@ -134,6 +134,10 @@ label#symbol {
     font-size: 200%;
 }
 
+label#symbol-large {
+    font-size: 300%;
+}
+
 label#standby {
     font-size: 300%;
     letter-spacing: 2px;

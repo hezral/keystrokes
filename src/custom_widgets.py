@@ -147,7 +147,7 @@ class KeyRectangleContainer(Gtk.Grid):
 
         if keyname[0] == "f" and isinstance(int(keyname[1]),int):
             keyname = keyname.upper()
-
+        
         self.props.name = "key-container"
         self.props.margin = 5
         self.props.hexpand = True
@@ -172,6 +172,10 @@ class KeyRectangleContainer(Gtk.Grid):
 
         if keyname in self.symbols.keys():
             self.generate_symbol(keyname)
+
+        if keyname == "cmd":
+            self.label.props.label = ""
+            self.set_size_request(80, 80)
 
         self.attach(self.label, 0, 0, 1, 1)
 
@@ -207,12 +211,18 @@ class KeyRectangleContainer(Gtk.Grid):
     def generate_symbol(self, keyname):
 
         symbol = Gtk.Label(self.symbols[keyname])
-        symbol.props.name = "symbol"
         symbol.props.expand = True
-        symbol.props.margin_right = 8
-        symbol.props.margin_top = 4
-        symbol.props.halign = Gtk.Align.END
-        symbol.props.valign = Gtk.Align.START
+
+        if keyname == "cmd":
+            symbol.props.name = "symbol-large"
+            symbol.props.valign = Gtk.Align.CENTER
+            symbol.props.halign = Gtk.Align.CENTER
+        else:
+            symbol.props.name = "symbol"
+            symbol.props.margin_right = 8
+            symbol.props.margin_top = 4
+            symbol.props.halign = Gtk.Align.END
+            symbol.props.valign = Gtk.Align.START
 
         self.attach(symbol, 0, 0, 1, 1)
 
@@ -245,16 +255,6 @@ class MouseContainer(Gtk.Grid):
             self.key_image.props.expand = True
             self.key_image.props.halign = self.key_image.props.valign = Gtk.Align.CENTER
             self.attach(self.key_image, 0, 0, 1, 1)
-
-        # else:
-        #     keymap = Gdk.Keymap().get_for_display(Gdk.Display.get_default())
-        #     if keymap.get_caps_lock_state():
-        #         keyname = keyname.upper()
-        #     self.label = Gtk.Label(keyname)
-        #     self.label.props.name = "single-key"
-        #     self.label.props.expand = True
-        #     self.label.props.halign = self.label.props.valign = Gtk.Align.CENTER
-        #     self.attach(self.label, 0, 0, 1, 1)
 
 
 class SettingsGroup(Gtk.Grid):
