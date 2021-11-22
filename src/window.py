@@ -121,6 +121,8 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         css_provider.load_from_data(bytes(css.encode()))
         self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
+        if self.app.gio_settings.get_value("sticky-mode"):
+            self.stick()
     def generate_headerbar(self):
         settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("com.github.hezral-settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
         settings_button.props.always_show_image = True
