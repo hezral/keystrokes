@@ -26,7 +26,12 @@
             <summary>Monitor repeated key press (experimental)</summary>
             <description>Monitor repeated key press (experimental)</description>
         </key>
-        <key type="b" name="monitor-keys">
+        <key type="b" name="monitor-key-press">
+            <default>false</default>
+            <summary>Monitor key press</summary>
+            <description>Monitor key press</description>
+        </key>
+        <key type="b" name="monitor-key-release">
             <default>true</default>
             <summary>Monitor key press</summary>
             <description>Monitor key press</description>
