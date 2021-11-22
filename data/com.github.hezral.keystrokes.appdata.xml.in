@@ -5,7 +5,7 @@
   <metadata_license>CC0</metadata_license>
   <project_license>GPL-3.0+</project_license>
   <name>Keystrokes</name>
-  <summary>Desktop Utility for Keystrokes Display</summary>
+  <summary>Simple keystrokes on-screen display</summary>
   <developer_name>Adi Hezral</developer_name>
   <description>
 	<p>Simple on-screen keyboard and mouse keystrokes display</p>
