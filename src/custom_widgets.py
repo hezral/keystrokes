@@ -455,13 +455,18 @@ class Settings(Gtk.Grid):
         # monitor_clicks.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-clicks", monitor_clicks.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
+        monitor_key_press = SubSettings(type="checkbutton", name="monitor-key-press", label=None, sublabel=None, separator=False, params=("Key Press",))
         # monitor_key_press.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        self.app.gio_settings.bind("monitor-key-press", monitor_key_press.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
+
+        monitor_key_release = SubSettings(type="checkbutton", name="monitor-key-release", label=None, sublabel=None, separator=False, params=("Key Release",))
         # monitor_key_release.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        self.app.gio_settings.bind("monitor-key-release", monitor_key_release.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Repeats",))
         monitor_repeatkeys.props.has_tooltip = True
         monitor_repeatkeys.props.tooltip_text = "Experimental, may cause app freezes/crashes"
-        monitor_repeatkeys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        # monitor_repeatkeys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-repeatkeys", monitor_repeatkeys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_separator = SubSettings(type=None, name="dummy-setting", label=None, sublabel=None, separator=True, params=None)
@@ -473,8 +478,9 @@ class Settings(Gtk.Grid):
         monitor_grid.props.row_spacing = 8
         monitor_grid.attach(monitor_scrolls, 0, 0, 1, 1)
         monitor_grid.attach(monitor_clicks, 1, 0, 1, 1)
-        monitor_grid.attach(monitor_keys, 2, 0, 1, 1)
-        # monitor_grid.attach(monitor_repeatkeys, 3, 0, 1, 1)
+        monitor_grid.attach(monitor_key_press, 2, 0, 1, 1)
+        monitor_grid.attach(monitor_key_release, 3, 0, 1, 1)
+        # monitor_grid.attach(monitor_repeatkeys, 4, 0, 1, 1)
 
         sticky_mode = SubSettings(type="switch", name="sticky-mode", label="Sticky mode", sublabel="Display on all workspaces",separator=True)
         sticky_mode.switch.connect_after("notify::active", self.on_switch_activated)
@@ -524,7 +530,7 @@ class Settings(Gtk.Grid):
             if name == "monitor-clicks":
                self.app.main_window.setup_mouse_listener()
 
-            if name == "monitor-keys":
+            if name == "monitor-key-press" or name == "monitor-key-release":
                 self.app.main_window.setup_keyboard_listener()
 
     def on_checkbutton_activated(self, checkbutton, gparam):

@@ -88,18 +88,29 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.key_listener.listener.stop()
             self.key_listener = None
             print(datetime.now(), "key listener stopped")
+
+        if self.app.gio_settings.get_value("monitor-key-press") and self.app.gio_settings.get_value("monitor-key-release"):
             self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
+
+        if self.app.gio_settings.get_value("monitor-key-press") and not self.app.gio_settings.get_value("monitor-key-release"):
+            self.key_listener = KeyListener(self.on_key_press, None)
+
+        if not self.app.gio_settings.get_value("monitor-key-press") and self.app.gio_settings.get_value("monitor-key-release"):
+            self.key_listener = KeyListener(None, self.on_key_release)
 
     def setup_mouse_listener(self, *args):
         if self.mouse_listener is not None:
             self.mouse_listener.listener.stop()
             self.mouse_listener = None
             print(datetime.now(), "mouse listener stopped")
+
         if self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
             self.mouse_listener = MouseListener(None, self.on_mouse_click, self.on_mouse_scroll)
-        elif self.app.gio_settings.get_value("monitor-scrolls") and not self.app.gio_settings.get_value("monitor-clicks"):
+        
+        if self.app.gio_settings.get_value("monitor-scrolls") and not self.app.gio_settings.get_value("monitor-clicks"):
             self.mouse_listener = MouseListener(None, None, self.on_mouse_scroll)
-        elif not self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
+        
+        if not self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
             self.mouse_listener = MouseListener(None, self.on_mouse_click, None)
 
     def setup_ui(self, transparency_value=None):
@@ -123,6 +134,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         if self.app.gio_settings.get_value("sticky-mode"):
             self.stick()
+
     def generate_headerbar(self):
         settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("com.github.hezral-settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
         settings_button.props.always_show_image = True
@@ -248,7 +260,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             else:
                 return True
         
-    def on_key_press(self, key):
+    def on_key_event(self, key, event):
         if self.on_event():
             self.key_press_timestamp = datetime.now()
             key_type = "keyboard"
@@ -259,12 +271,15 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 key = key.name
                 shape_type = "rectangle"
 
-            self.add_to_display(key, key_type, shape_type)
+            self.add_to_display(key, key_type, shape_type, event)
 
             self.last_key = key
+    
+    def on_key_press(self, key):
+        self.on_key_event(key, "key-press")
 
     def on_key_release(self, key):
-        self.key_press_timestamp_old = datetime.now()
+        self.on_key_event(key, "key-release")
 
     def on_mouse_move(self, x, y):
         print('Pointer moved to {0}'.format((x, y)))
