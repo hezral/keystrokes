@@ -151,7 +151,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         return header
 
-    def generate_settings_dialog(self):
+    def generate_settings_dialog(self, *args):
 
         self.settings_grid = Settings(gtk_application=self.app)
 
