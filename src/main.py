@@ -11,7 +11,7 @@ gi.require_version('Granite', '1.0')
 from gi.repository import Gtk, Gdk, Gio, Granite, GLib
 
 from .window import KeystrokesWindow
-from .utils import *
+from . import utils
 
 
 class Application(Gtk.Application):
@@ -20,6 +20,7 @@ class Application(Gtk.Application):
     granite_settings = Granite.Settings.get_default()
     gtk_settings = Gtk.Settings.get_default()
     gio_settings = Gio.Settings(schema_id=app_id)
+    utils = utils
 
     main_window = None
 
