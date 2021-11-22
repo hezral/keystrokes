@@ -220,6 +220,8 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.settings_revealer.set_reveal_child(True)
             GLib.timeout_add(5000, self.header.set_show_close_button, False)
             GLib.timeout_add(5000, self.settings_revealer.set_reveal_child, False)
+            # GLib.idle_add(self.header.set_show_close_button, False)
+            # GLib.idle_add(self.settings_revealer.set_reveal_child, False)
 
     def on_settings_clicked(self, button):
         self.generate_settings_dialog()
