@@ -526,14 +526,15 @@ class Settings(Gtk.Grid):
 
     def on_checkbutton_activated(self, checkbutton, gparam):
         name = checkbutton.get_name()
-        if name == "monitor-scrolls":
-            self.app.main_window.setup_mouse_listener()
+        # print(name)
+        # if name == "monitor-scrolls":
+            # self.app.main_window.setup_mouse_listener()
 
-        if name == "monitor-clicks":
-            self.app.main_window.setup_mouse_listener()
+        # if name == "monitor-clicks":
+            # self.app.main_window.setup_mouse_listener()
 
-        if name == "monitor-keys":
-            self.app.main_window.setup_keyboard_listener()
+        # if name == "monitor-keys" or name == "monitor-key-release":
+            # self.app.main_window.setup_keyboard_listener()
 
 
     def on_spinbutton_activated(self, spinbutton):        
