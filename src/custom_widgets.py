@@ -13,7 +13,9 @@ class CustomDialog(Gtk.Window):
 
         parent_window = dialog_parent_widget.get_toplevel()
 
-        def close_dialog(button):
+        def on_close_window():
+            dialog_parent_widget.setup_keyboard_listener()
+            dialog_parent_widget.setup_mouse_listener()
             dialog_content_widget.destroy()
             self.destroy()
 
