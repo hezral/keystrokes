@@ -444,16 +444,15 @@ class Settings(Gtk.Grid):
         monitor_label = SubSettings(type=None, name="monitor-label", label="Event monitoring", sublabel=None, separator=False, params=None)
         
         monitor_scrolls = SubSettings(type="checkbutton", name="monitor-scrolls", label=None, sublabel=None, separator=False, params=("Scrolls",))
-        monitor_scrolls.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        # monitor_scrolls.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-scrolls", monitor_scrolls.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_clicks = SubSettings(type="checkbutton", name="monitor-clicks", label=None, sublabel=None, separator=False, params=("Clicks",))
-        monitor_clicks.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        # monitor_clicks.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-clicks", monitor_clicks.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
-        monitor_keys = SubSettings(type="checkbutton", name="monitor-keys", label=None, sublabel=None, separator=False, params=("Key Press",))
-        monitor_keys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
-        self.app.gio_settings.bind("monitor-keys", monitor_keys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
+        # monitor_key_press.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
+        # monitor_key_release.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
 
         monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Repeats",))
         monitor_repeatkeys.props.has_tooltip = True
