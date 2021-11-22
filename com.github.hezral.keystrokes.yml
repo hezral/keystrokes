@@ -24,6 +24,14 @@ modules:
     build-commands:
       - "pip3 install --prefix=${FLATPAK_DEST} pynput"
 
+  - name: chardet
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+    build-commands:
+      - "pip3 install --prefix=${FLATPAK_DEST} chardet"
+
   - name: keystrokes
     buildsystem: meson
     sources:
