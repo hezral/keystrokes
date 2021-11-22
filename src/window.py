@@ -4,8 +4,7 @@
 import gi
 gi.require_version('Handy', '1')
 gi.require_version('Gtk', '3.0')
-gi.require_version('Granite', '1.0')
-from gi.repository import Gtk, Handy, GLib, Gdk, Granite
+from gi.repository import Gtk, Handy, GLib, Gdk
 
 from datetime import date, datetime
 
@@ -358,11 +357,10 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                             last_key_child.counter.props.label = str(last_key_child.repeat_key_counter)
                             last_key_child.show_all()
                         else:
-                            print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
+                            # print("triggered at line: {3}, event: {5}, timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()), event)
                             # GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
                     else:
-                        print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
                         GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                         self.key_press_timestamp_diff = int((self.key_press_timestamp-self.key_press_timestamp_old).total_seconds()*1000)
                         print(self.key_press_timestamp_diff)
@@ -372,23 +370,18 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                     last_key_child = self.get_last_key_grid_child(self.last_key)
                     if last_key_child is not None:
                         if last_key_child.repeat_key_counter > 1:
-                            print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
                             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
                         else:
-                            print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
                             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
                     else:
-                        print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
                         GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                         GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
             else:
-                print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
                 GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
         else:
-            print("triggered at line: {3},  timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()))
             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
 
