@@ -87,13 +87,14 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         if self.key_listener is not None:
             self.key_listener.listener.stop()
             self.key_listener = None
-        if self.app.gio_settings.get_value("monitor-keys"):
+            print(datetime.now(), "key listener stopped")
             self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
 
     def setup_mouse_listener(self, *args):
         if self.mouse_listener is not None:
             self.mouse_listener.listener.stop()
             self.mouse_listener = None
+            print(datetime.now(), "mouse listener stopped")
         if self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
             self.mouse_listener = MouseListener(None, self.on_mouse_click, self.on_mouse_scroll)
         elif self.app.gio_settings.get_value("monitor-scrolls") and not self.app.gio_settings.get_value("monitor-clicks"):
