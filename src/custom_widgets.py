@@ -17,10 +17,12 @@ class CustomDialog(Gtk.Window):
             dialog_content_widget.destroy()
             self.destroy()
 
+        def close_dialog(button):
+            on_close_window()
+
         def on_key_press(self, eventkey):
             if eventkey.keyval == 65307: #63307 is esc key
-                dialog_content_widget.destroy()
-                self.destroy()
+                on_close_window()
 
         self.header = Gtk.HeaderBar()
         self.header.props.show_close_button = False
