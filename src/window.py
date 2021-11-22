@@ -241,7 +241,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.set_position(Gtk.WindowPosition.NONE)
 
     def on_event(self):
-        active_window_class = utils.get_active_window_wm_class()
+        active_window_class = self.app.utils.get_active_window_wm_class()
         if active_window_class is not None:
             if self.app.app_id.split(".")[-1] in active_window_class:
                 return False
