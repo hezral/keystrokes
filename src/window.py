@@ -75,17 +75,13 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.set_resizable(False)
         self.set_keep_above(True)
         self.set_size_request(280, 220)
-        self.connect("destroy", Gtk.main_quit)
         self.connect("button-press-event", self.show_window_controls)
         # self.connect("screen-changed", self.on_screen_changed)
         self.reposition(self.app.gio_settings.get_string("screen-position"))
-        if self.app.gio_settings.get_value("sticky-mode"):
-            self.stick()
+
 
         self.setup_keyboard_listener()
         self.setup_mouse_listener()
-        # GLib.timeout_add(500, self.setup_keyboard_listener, None)
-        # GLib.timeout_add(1000, self.setup_mouse_listener, None)
 
     def setup_keyboard_listener(self, *args):
         if self.key_listener is not None:
