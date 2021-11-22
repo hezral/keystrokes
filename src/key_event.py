@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: 2021 Adi Hezral <hezral@gmail.com>
 
 from pynput import keyboard, mouse
+from datetime import datetime
 
 class KeyListener():
     def __init__(self, on_press_callback, on_release_callback, *args, **kwargs):
@@ -12,6 +13,8 @@ class KeyListener():
             on_press=on_press_callback,
             on_release=on_release_callback)
         self.listener.start()
+
+        print(datetime.now(), "key listener started")
 
 
 class MouseListener():
@@ -25,6 +28,7 @@ class MouseListener():
             on_scroll=on_scroll_callback)
         self.listener.start()
 
+        print(datetime.now(), "mouse listener started")
 
 
 # import signal
