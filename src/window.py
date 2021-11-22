@@ -145,7 +145,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         settings_button.get_style_context().add_class("titlebutton")
         settings_button.connect("clicked", self.on_settings_clicked)
         self.settings_revealer = Gtk.Revealer()
-        self.settings_revealer.props.transition_duration = 10
+        self.settings_revealer.props.transition_duration = 250
         self.settings_revealer.props.transition_type = Gtk.RevealerTransitionType.CROSSFADE
         self.settings_revealer.add(settings_button)
 
@@ -294,7 +294,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             except AttributeError:
                 pass
             if pressed:
-                self.add_to_display(key, key_type, shape_type)
+                self.add_to_display(key, key_type, shape_type, "mouse-click")
                 self.last_key = key
             else:
                 self.key_press_timestamp_old = datetime.now()
@@ -312,7 +312,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 elif dx > 0:
                     key = "scrollright"
                 shape_type= "square"
-                self.add_to_display(key, key_type, shape_type)
+                self.add_to_display(key, key_type, shape_type, "mouse-scroll")
                 self.last_key = key
             except AttributeError:
                 pass
@@ -355,7 +355,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             if len(last_key_grid_child) == 1:
                 return last_key_grid_child[0]
 
-    def add_to_display(self, key=None, key_type=None, shape_type=None):
+    def add_to_display(self, key=None, key_type=None, shape_type=None, event=None):
         monitor_repeats = self.app.gio_settings.get_value("monitor-repeatkeys")
         key_grid_children_count = len(self.key_grid.get_children())
 
