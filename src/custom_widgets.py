@@ -144,6 +144,7 @@ class KeyRectangleContainer(Gtk.Grid):
         "right": "▷",
         "up": "△",
         "down": "▽ ",
+        "space": "⎵",
     }
 
     def __init__(self, keyname, key_type, *args, **kwargs):
