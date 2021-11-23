@@ -68,7 +68,10 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         grid.attach(self.header, 0, 0, 1, 1)
         grid.attach(self.stack, 0, 0, 1, 1)
 
-        self.add(grid)
+        window_handle = Handy.WindowHandle()
+        window_handle.add(grid)
+
+        self.add(window_handle)
         self.props.name = "main"
         self.setup_ui()
         self.show_all()
