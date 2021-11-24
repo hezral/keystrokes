@@ -46,6 +46,11 @@
             <summary>Monitor mouse scrolls</summary>
             <description>Monitor mouse scrolls</description>
         </key>
+        <key type="b" name="monitor-movements">
+            <default>false</default>
+            <summary>Monitor mouse scrolls</summary>
+            <description>Monitor mouse scrolls</description>
+        </key>
         <key type="i" name="display-timeout">
             <default>1000</default>
             <summary>How long to until key is removed</summary>
