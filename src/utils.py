@@ -158,7 +158,7 @@ def get_all_apps(app=None):
         return all_apps
 
 def get_active_app_using_active_window():
-    running_apps = {}
+    running_app = {}
     all_apps = get_all_apps()
 
     import os
@@ -169,19 +169,14 @@ def get_active_app_using_active_window():
 
     display = Xlib.display.Display()
     root = display.screen().root
-
-    NET_CLIENT_LIST = display.intern_atom('_NET_CLIENT_LIST')
-    NET_DESKTOP_NAMES = display.intern_atom('_NET_DESKTOP_NAMES')
+    root.change_attributes(event_mask=Xlib.X.FocusChangeMask)
+    
     NET_ACTIVE_WINDOW = display.intern_atom('_NET_ACTIVE_WINDOW')
     GTK_APPLICATION_ID = display.intern_atom('_GTK_APPLICATION_ID')
     WM_NAME = display.intern_atom('WM_NAME')
     WM_CLASS = display.intern_atom('WM_CLASS')
     BAMF_DESKTOP_FILE = display.intern_atom('_BAMF_DESKTOP_FILE')
-    NET_WM_PID = display.intern_atom('_NET_WM_PID')
-    NET_WM_DESKTOP = display.intern_atom('_NET_WM_DESKTOP')
     
-    proc_state = None
-
     try:
         window_id_list = root.get_full_property(NET_ACTIVE_WINDOW, Xlib.X.AnyPropertyType).value
 
@@ -192,9 +187,6 @@ def get_active_app_using_active_window():
             gtk_application_id = None
             wm_class = None
             wm_name = None
-            pid = None
-            proc_state = None
-            workspace_n = None
 
             window = display.create_resource_object('window', window_id)
 
@@ -216,14 +208,6 @@ def get_active_app_using_active_window():
                     wm_name = window.get_full_property(WM_NAME, 0).value.decode(encoding).lower()
                 except:
                     wm_name = window.get_full_property(WM_NAME, 0).value.decode("utf-8").lower()
-
-            if window.get_full_property(NET_WM_PID, 0):
-                pid = window.get_full_property(NET_WM_PID, 0).value[0]
-
-            if window.get_full_property(NET_WM_DESKTOP, 0):
-                workspace_n = window.get_full_property(NET_WM_DESKTOP, 0)
-                if workspace_n is not None:
-                    workspace_n = workspace_n.value[0]
 
             for key in sorted(all_apps.keys()):
 
@@ -260,19 +244,19 @@ def get_active_app_using_active_window():
 
                 if bamf_desktop_file:
                     if os.path.basename(bamf_desktop_file) == os.path.basename(desktop_file_path):
-                        running_apps[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak, wm_class, wm_name, workspace_n, window_id, pid, proc_state]
+                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
                         break
                         
                 elif gtk_application_id:
                     if gtk_application_id == app_icon:
-                        running_apps[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak, wm_class, wm_name, workspace_n, window_id, pid, proc_state]
+                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
                         break
 
                 elif wm_name:
                     if " - " in wm_name:
                         wm_name = wm_name.split(" - ")[-1]
                     if wm_name == app_name or wm_name == startup_wm_class or wm_name in app_icon:
-                        running_apps[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak, wm_class, wm_name, workspace_n, window_id, pid, proc_state]
+                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
                         break
 
                 elif wm_class:
@@ -280,40 +264,18 @@ def get_active_app_using_active_window():
                     for wm_class_key in wm_class_keys:
                         if wm_class_key != '':
                             if wm_class_key.lower() in app_icon or wm_class_key.lower() in app_exec:
-                                running_apps[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak, wm_class, wm_name, workspace_n, window_id, pid, proc_state]
+                                running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
                                 break
                             elif "-" in wm_class_key:
                                 for wm_class_subkey in wm_class_key.split("-"):
                                     if wm_class_subkey.lower() == app_name or wm_class_subkey.lower() == startup_wm_class or wm_class_subkey.lower() in app_icon:
-                                        running_apps[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak, wm_class, wm_name, workspace_n, window_id, pid, proc_state]
+                                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
                                         break
         display = None
         root = None
-        return running_apps
+        return running_app
 
     except Xlib.error.XError: #simplify dealing with BadWindow
         display = None
         root = None
-        return None
-
-def get_active_window_wm_class():
-    ''' Function to get active window wm class'''
-    import Xlib
-    import Xlib.display
-
-    display = Xlib.display.Display()
-    root = display.screen().root
-
-    NET_ACTIVE_WINDOW = display.intern_atom('_NET_ACTIVE_WINDOW')
-    WM_CLASS = display.intern_atom('WM_CLASS')
-
-    root.change_attributes(event_mask=Xlib.X.FocusChangeMask)
-    try:
-        window_id = root.get_full_property(NET_ACTIVE_WINDOW, Xlib.X.AnyPropertyType).value[0]
-        window = display.create_resource_object('window', window_id)
-        try:
-            return window.get_full_property(WM_CLASS, 0).value.replace(b'\x00',b' ').decode("utf-8").lower()
-        except:
-            return None
-    except Xlib.error.XError: #simplify dealing with BadWindow
         return None
