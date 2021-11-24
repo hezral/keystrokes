@@ -23,7 +23,7 @@ keystrokes_sources = [
   'main.py',
   'window.py',
   'custom_widgets.py',
-  'key_event.py',
+  'keystrokes_backend.py',
   'utils.py'
 ]
 
