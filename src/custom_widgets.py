@@ -5,7 +5,7 @@ from Xlib.protocol import event
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Granite', '1.0')
-from gi.repository import Gtk, Granite, Gdk, Pango, Gio
+from gi.repository import Gtk, Granite, Gdk, Pango, Gio, GLib
 
 class CustomDialog(Gtk.Window):
     def __init__(self, dialog_parent_widget, dialog_title, dialog_content_widget, action_button_label, action_button_name, action_callback, action_type, size=None, data=None, *args, **kwargs):
@@ -14,9 +14,6 @@ class CustomDialog(Gtk.Window):
         parent_window = dialog_parent_widget.get_toplevel()
 
         def on_close_window():
-            dialog_parent_widget.setup_keyboard_listener()
-            dialog_parent_widget.setup_mouse_listener()
-            dialog_content_widget.destroy()
             self.destroy()
 
         def close_dialog(button):
@@ -390,8 +387,8 @@ class Settings(Gtk.Grid):
         self.screen_icon = Gtk.Grid()
         self.screen_icon.props.expand = True
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
-        self.screen_icon.props.height_request = 198
-        self.screen_icon.props.width_request = 292
+        self.screen_icon.props.height_request = 160
+        self.screen_icon.props.width_request = 240
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
@@ -448,26 +445,24 @@ class Settings(Gtk.Grid):
 
         monitor_label = SubSettings(type=None, name="monitor-label", label="Event monitoring", sublabel=None, separator=False, params=None)
         
+        monitor_movements = SubSettings(type="checkbutton", name="monitor-movements", label=None, sublabel=None, separator=False, params=("Movements",))
+        self.app.gio_settings.bind("monitor-movements", monitor_movements.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
+
         monitor_scrolls = SubSettings(type="checkbutton", name="monitor-scrolls", label=None, sublabel=None, separator=False, params=("Scrolls",))
-        # monitor_scrolls.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-scrolls", monitor_scrolls.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_clicks = SubSettings(type="checkbutton", name="monitor-clicks", label=None, sublabel=None, separator=False, params=("Clicks",))
-        # monitor_clicks.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-clicks", monitor_clicks.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_key_press = SubSettings(type="checkbutton", name="monitor-key-press", label=None, sublabel=None, separator=False, params=("Key Press",))
-        # monitor_key_press.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-key-press", monitor_key_press.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_key_release = SubSettings(type="checkbutton", name="monitor-key-release", label=None, sublabel=None, separator=False, params=("Key Release",))
-        # monitor_key_release.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-key-release", monitor_key_release.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Repeats",))
         monitor_repeatkeys.props.has_tooltip = True
         monitor_repeatkeys.props.tooltip_text = "Experimental, may cause app freezes/crashes"
-        # monitor_repeatkeys.checkbutton.connect_after("notify::active", self.on_checkbutton_activated)
         self.app.gio_settings.bind("monitor-repeatkeys", monitor_repeatkeys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_separator = SubSettings(type=None, name="dummy-setting", label=None, sublabel=None, separator=True, params=None)
@@ -477,17 +472,18 @@ class Settings(Gtk.Grid):
         monitor_grid.props.halign = Gtk.Align.START
         monitor_grid.props.column_spacing = 10
         monitor_grid.props.row_spacing = 8
-        monitor_grid.attach(monitor_scrolls, 0, 0, 1, 1)
-        monitor_grid.attach(monitor_clicks, 1, 0, 1, 1)
-        monitor_grid.attach(monitor_key_press, 2, 0, 1, 1)
-        monitor_grid.attach(monitor_key_release, 3, 0, 1, 1)
+        monitor_grid.attach(monitor_movements, 0, 0, 1, 1)
+        monitor_grid.attach(monitor_scrolls, 1, 0, 1, 1)
+        monitor_grid.attach(monitor_clicks, 2, 0, 1, 1)
+        monitor_grid.attach(monitor_key_press, 0, 1, 1, 1)
+        monitor_grid.attach(monitor_key_release, 1, 1, 1, 1)
         # monitor_grid.attach(monitor_repeatkeys, 4, 0, 1, 1)
 
         sticky_mode = SubSettings(type="switch", name="sticky-mode", label="Sticky mode", sublabel="Display on all workspaces",separator=True)
         sticky_mode.switch.connect_after("notify::active", self.on_switch_activated)
         self.app.gio_settings.bind("sticky-mode", sticky_mode.switch, "active", Gio.SettingsBindFlags.DEFAULT)
 
-        display_timeout = SubSettings(type="spinbutton", name="display-timeout", label="Display timeout (ms)", sublabel="How long to until key is removed", separator=True, params=(1000,15000,250))
+        display_timeout = SubSettings(type="spinbutton", name="display-timeout", label="Display timeout (ms)", sublabel="How long until key dissapears", separator=True, params=(1000,15000,250))
         self.app.gio_settings.bind("display-timeout", display_timeout.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
         
         display_transparency = SubSettings(type="spinbutton", name="display-transparency", label="Display transparency", sublabel="Customize window transparency", separator=True, params=(0,100,1))
@@ -533,19 +529,6 @@ class Settings(Gtk.Grid):
 
             if name == "monitor-key-press" or name == "monitor-key-release":
                 self.app.main_window.setup_keyboard_listener()
-
-    def on_checkbutton_activated(self, checkbutton, gparam):
-        name = checkbutton.get_name()
-        # print(name)
-        # if name == "monitor-scrolls":
-            # self.app.main_window.setup_mouse_listener()
-
-        # if name == "monitor-clicks":
-            # self.app.main_window.setup_mouse_listener()
-
-        # if name == "monitor-keys" or name == "monitor-key-release":
-            # self.app.main_window.setup_keyboard_listener()
-
 
     def on_spinbutton_activated(self, spinbutton):        
         name = spinbutton.get_name()
