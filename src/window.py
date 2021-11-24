@@ -7,13 +7,13 @@ gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, Handy, GLib, Gdk
 
 from datetime import date, datetime
+from time import sleep
 
-from .key_event import MouseListener, KeyListener
+# from .key_event import MouseListener, KeyListener
 from .custom_widgets import CustomDialog, Settings, ContainerRevealer, KeySquareContainer, KeyRectangleContainer, MouseContainer
 from . import utils
 
 from inspect import currentframe, getframeinfo
-
 
 class KeystrokesWindow(Handy.ApplicationWindow):
     __gtype_name__ = 'KeystrokesWindow'
@@ -38,6 +38,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     repeated_key = None
 
     key_add_delay = 500
+    key_remove_delay = 250
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -50,9 +51,33 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.key_grid.props.name = "key-grid"
         self.key_grid.props.column_spacing = 20
         self.key_grid.props.expand = True
-        self.key_grid.props.halign = Gtk.Align.CENTER
+        self.key_grid.props.halign = Gtk.Align.FILL
         self.key_grid.props.margin_top = 5
         self.key_grid.props.margin_left = self.key_grid.props.margin_right = 20
+
+        self.key_info_grid = Gtk.Grid()
+        self.key_info_grid.props.name = "key-info-grid"
+        self.key_info_grid.props.margin = 10
+        self.key_info_grid.props.expand = True
+        self.key_info_grid.props.halign = Gtk.Align.FILL
+        self.key_info_grid.props.valign = Gtk.Align.END
+        
+        self.event_type_image = Gtk.Image()
+        self.event_type_image.props.expand = True
+        self.event_type_image.props.halign = Gtk.Align.START
+        self.key_info_grid.attach(self.event_type_image, 0, 0, 1, 1)
+
+        self.key_display_grid = Gtk.Grid()
+        self.key_display_grid.props.expand = True
+        self.key_display_grid.props.halign = Gtk.Align.FILL
+        self.key_display_grid.props.valign = Gtk.Align.FILL
+        self.key_display_grid.attach(self.key_info_grid, 0, 0, 1, 1)
+        self.key_display_grid.attach(self.key_grid, 0, 0, 1, 1)
+        
+        self.active_app_image = Gtk.Image()
+        self.active_app_image.props.expand = True
+        self.active_app_image.props.halign = Gtk.Align.END
+        self.key_info_grid.attach(self.active_app_image, 1, 0, 1, 1)
 
         standby_label = Gtk.Label("•••")
         standby_label.props.name = "standby"
@@ -61,7 +86,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         self.stack = Gtk.Stack()
         self.stack.add_named(standby_label, "standby")
-        self.stack.add_named(self.key_grid, "key-grid")
+        self.stack.add_named(self.key_display_grid, "key-grid")
 
         grid = Gtk.Grid()
         grid.props.expand = True
@@ -82,39 +107,21 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         # self.connect("screen-changed", self.on_screen_changed)
         self.reposition(self.app.gio_settings.get_string("screen-position"))
 
+    # def setup_keyboard_listener(self, *args):
+    #     if self.key_listener is not None:
+    #         self.key_listener.listener.stop()
+    #         self.key_listener = None
+    #         print(datetime.now(), "key listener stopped")
 
-        self.setup_keyboard_listener()
-        self.setup_mouse_listener()
+    #     self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
 
-    def setup_keyboard_listener(self, *args):
-        if self.key_listener is not None:
-            self.key_listener.listener.stop()
-            self.key_listener = None
-            print(datetime.now(), "key listener stopped")
+    # def setup_mouse_listener(self, *args):
+    #     if self.mouse_listener is not None:
+    #         self.mouse_listener.listener.stop()
+    #         self.mouse_listener = None
+    #         print(datetime.now(), "mouse listener stopped")
 
-        if self.app.gio_settings.get_value("monitor-key-press") and self.app.gio_settings.get_value("monitor-key-release"):
-            self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
-
-        if self.app.gio_settings.get_value("monitor-key-press") and not self.app.gio_settings.get_value("monitor-key-release"):
-            self.key_listener = KeyListener(self.on_key_press, None)
-
-        if not self.app.gio_settings.get_value("monitor-key-press") and self.app.gio_settings.get_value("monitor-key-release"):
-            self.key_listener = KeyListener(None, self.on_key_release)
-
-    def setup_mouse_listener(self, *args):
-        if self.mouse_listener is not None:
-            self.mouse_listener.listener.stop()
-            self.mouse_listener = None
-            print(datetime.now(), "mouse listener stopped")
-
-        if self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
-            self.mouse_listener = MouseListener(None, self.on_mouse_click, self.on_mouse_scroll)
-        
-        if self.app.gio_settings.get_value("monitor-scrolls") and not self.app.gio_settings.get_value("monitor-clicks"):
-            self.mouse_listener = MouseListener(None, None, self.on_mouse_scroll)
-        
-        if not self.app.gio_settings.get_value("monitor-scrolls") and self.app.gio_settings.get_value("monitor-clicks"):
-            self.mouse_listener = MouseListener(None, self.on_mouse_click, None)
+    #     self.mouse_listener = MouseListener(self.on_mouse_move, self.on_mouse_click, self.on_mouse_scroll)
 
     def setup_ui(self, transparency_value=None):
         if transparency_value is None:
@@ -178,7 +185,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             action_button_name=None,
             action_callback=None,
             action_type=None,
-            size=[500, 400],
+            size=[400, 300],
             data=None
         )
 
@@ -235,8 +242,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.settings_revealer.set_reveal_child(True)
             GLib.timeout_add(5000, self.header.set_show_close_button, False)
             GLib.timeout_add(5000, self.settings_revealer.set_reveal_child, False)
-            # GLib.idle_add(self.header.set_show_close_button, False)
-            # GLib.idle_add(self.settings_revealer.set_reveal_child, False)
 
     def on_settings_clicked(self, button):
         self.generate_settings_dialog()
@@ -250,18 +255,24 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.stack.set_visible_child_name("standby")
         else:
             self.stack.set_visible_child_name("key-grid")
+
         if self.app.gio_settings.get_value("auto-position"):
             self.reposition(self.app.gio_settings.get_string("screen-position"))
         else:
             self.set_position(Gtk.WindowPosition.NONE)
 
     def on_event(self):
-        active_window_class = self.app.utils.get_active_window_wm_class()
-        if active_window_class is not None:
-            if self.app.app_id.split(".")[-1] in active_window_class:
-                return False
-            else:
-                return True
+        active_app = self.app.utils.get_active_app_using_active_window()
+        if active_app is not None:
+            key = list(active_app.keys())
+            if len(key) != 0:
+                self.active_app_image.set_from_icon_name(icon_name=active_app[key[0]][0], size=Gtk.IconSize.DND)
+                self.active_app_image.set_pixel_size(32)
+                # self.key_info_grid.show_all()
+                if self.app.app_id.split(".")[-1] in key[0]:
+                    return False
+                else:
+                    return True
         
     def on_key_event(self, key, event):
         if self.on_event():
@@ -279,46 +290,51 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.last_key = key
     
     def on_key_press(self, key):
-        self.on_key_event(key, "key-press")
+        if self.app.gio_settings.get_value("monitor-key-press"):
+            self.on_key_event(key, "key-press")
 
     def on_key_release(self, key):
-        self.on_key_event(key, "key-release")
+        if self.app.gio_settings.get_value("monitor-key-release"):
+            self.on_key_event(key, "key-release")
 
     def on_mouse_move(self, x, y):
-        print('Pointer moved to {0}'.format((x, y)))
+        if self.app.gio_settings.get_value("monitor-movements"):
+            print('Pointer moved to {0}'.format((x, y)))
 
     def on_mouse_click(self, x, y, button, pressed):
-        if self.on_event():
-            self.key_press_timestamp = datetime.now()
-            key_type = "mouse"
-            try:
-                key = button.name
-                shape_type= "square"
-            except AttributeError:
-                pass
-            if pressed:
-                self.add_to_display(key, key_type, shape_type, "mouse-click")
-                self.last_key = key
-            else:
-                self.key_press_timestamp_old = datetime.now()
+        if self.app.gio_settings.get_value("monitor-clicks"):
+            if self.on_event():
+                self.key_press_timestamp = datetime.now()
+                key_type = "mouse"
+                try:
+                    key = button.name
+                    shape_type= "square"
+                except AttributeError:
+                    pass
+                if pressed:
+                    self.add_to_display(key, key_type, shape_type, "mouse-click")
+                    self.last_key = key
+                else:
+                    self.key_press_timestamp_old = datetime.now()
 
     def on_mouse_scroll(self, x, y, dx, dy):
-        if self.on_event():
-            key_type = "mouse"
-            try:
-                if dy < 0:
-                    key = "scrolldown"
-                elif dy > 0:
-                    key = "scrollup"
-                elif dx < 0:
-                    key = "scrollleft"
-                elif dx > 0:
-                    key = "scrollright"
-                shape_type= "square"
-                self.add_to_display(key, key_type, shape_type, "mouse-scroll")
-                self.last_key = key
-            except AttributeError:
-                pass
+        if self.app.gio_settings.get_value("monitor-scrolls"):
+            if self.on_event():
+                key_type = "mouse"
+                try:
+                    if dy < 0:
+                        key = "scrolldown"
+                    elif dy > 0:
+                        key = "scrollup"
+                    elif dx < 0:
+                        key = "scrollleft"
+                    elif dx > 0:
+                        key = "scrollright"
+                    shape_type= "square"
+                    self.add_to_display(key, key_type, shape_type, "mouse-scroll")
+                    self.last_key = key
+                except AttributeError:
+                    pass
 
     def add_key(self, data):
         key, key_type, shape_type = data
@@ -332,7 +348,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 self.key_grid.attach(ContainerRevealer(key, MouseContainer(key, key_type)), index, 0, 1, 1)
             else:
                 self.key_grid.attach(ContainerRevealer(key, KeySquareContainer(key, key_type)), index, 0, 1, 1)
-
         else:
             self.key_grid.attach(ContainerRevealer(key, KeyRectangleContainer(key, key_type)), index, 0, 1, 1)
 
@@ -345,12 +360,11 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         if data is None:
             if len(self.key_grid.get_children()) != 0:
                 self.key_grid.get_children()[-1].set_reveal_child(False)
-            GLib.timeout_add(self.key_add_delay, self.key_grid.remove_column, 0)
+            GLib.timeout_add(self.key_remove_delay, self.key_grid.remove_column, 0)
         else:
             key_grid_child = data
             key_grid_child.destroy()
-            print("destroy")
-        GLib.timeout_add(self.key_add_delay, self.on_stack_view, None)
+        GLib.timeout_add(self.key_remove_delay, self.on_stack_view, None)
 
     def get_last_key_grid_child(self, key):
         if len(self.key_grid.get_children()) != 0:
@@ -358,49 +372,54 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             if len(last_key_grid_child) == 1:
                 return last_key_grid_child[0]
 
-    def add_to_display(self, key=None, key_type=None, shape_type=None, event=None):
-        monitor_repeats = self.app.gio_settings.get_value("monitor-repeatkeys")
-        key_grid_children_count = len(self.key_grid.get_children())
 
-        if monitor_repeats:
-            if self.last_key is not None:
-                if key == self.last_key:
-                    if key_grid_children_count != 0:
-                        last_key_child = self.get_last_key_grid_child(self.last_key)
-                        if last_key_child is not None:
-                            if last_key_child.repeat_key_counter == 0:
-                                last_key_child.repeat_key_counter += 1
-                                last_key_child.overlay.add_overlay(last_key_child.counter)
-                            else:
-                                last_key_child.repeat_key_counter += 1
-                            last_key_child.counter.props.label = str(last_key_child.repeat_key_counter)
-                            last_key_child.show_all()
-                        else:
-                            # print("triggered at line: {3}, event: {5}, timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()), event)
-                            # GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                            GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-                    else:
-                        GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                        self.key_press_timestamp_diff = int((self.key_press_timestamp-self.key_press_timestamp_old).total_seconds()*1000)
-                        print(self.key_press_timestamp_diff)
-                        if self.key_press_timestamp_diff > self.key_press_timeout:
-                            GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-                else:
-                    last_key_child = self.get_last_key_grid_child(self.last_key)
-                    if last_key_child is not None:
-                        if last_key_child.repeat_key_counter > 1:
-                            GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                            GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-                        else:
-                            GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                            GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-                    else:
-                        GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                        GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            else:
-                GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-                GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-        else:
-            GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+    def add_to_display(self, key=None, key_type=None, shape_type=None, event=None):
+
+        def queue():
+            GLib.idle_add(self.add_key, (key, key_type, shape_type))
+            sleep(0.25)
             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
 
+        key_grid_children_count = len(self.key_grid.get_children())
+
+        if self.app.gio_settings.get_value("monitor-repeatkeys"):
+            ...
+            # if self.last_key is not None:
+            #     if key == self.last_key:
+            #         if key_grid_children_count != 0:
+            #             last_key_child = self.get_last_key_grid_child(self.last_key)
+            #             if last_key_child is not None:
+            #                 if last_key_child.repeat_key_counter == 0:
+            #                     last_key_child.repeat_key_counter += 1
+            #                     last_key_child.overlay.add_overlay(last_key_child.counter)
+            #                 else:
+            #                     last_key_child.repeat_key_counter += 1
+            #                 last_key_child.counter.props.label = str(last_key_child.repeat_key_counter)
+            #                 last_key_child.show_all()
+            #             else:
+            #                 # print("triggered at line: {3}, event: {5}, timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()), event)
+            #                 # GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+            #         else:
+            #             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #             self.key_press_timestamp_diff = int((self.key_press_timestamp-self.key_press_timestamp_old).total_seconds()*1000)
+            #             print(self.key_press_timestamp_diff)
+            #             if self.key_press_timestamp_diff > self.key_press_timeout:
+            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+            #     else:
+            #         last_key_child = self.get_last_key_grid_child(self.last_key)
+            #         if last_key_child is not None:
+            #             if last_key_child.repeat_key_counter > 1:
+            #                 GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+            #             else:
+            #                 GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+            #         else:
+            #             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+            # else:
+            #     GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
+            #     GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+        else:
+            queue()
