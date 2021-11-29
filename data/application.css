@@ -116,6 +116,10 @@ label#default-state {
     font-size: 300%;
 }
 
+label#movement {
+    font-weight: bold;
+}
+
 label#symbol {
     font-size: 200%;
 }
