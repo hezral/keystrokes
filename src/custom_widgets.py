@@ -79,7 +79,7 @@ class CustomDialog(Gtk.Window):
 
 
 class ContainerRevealer(Gtk.Revealer):
-    def __init__(self, keyname, widget, *args, **kwargs):
+    def __init__(self, keyname, widget, id=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.props.name = keyname
@@ -87,6 +87,7 @@ class ContainerRevealer(Gtk.Revealer):
         self.props.transition_type = Gtk.RevealerTransitionType.CROSSFADE
 
         self.repeat_key_counter = 0
+        self.id = id
 
         self.counter = Gtk.Label(self.repeat_key_counter)
         self.counter.props.name = "repeat-counter"
@@ -98,9 +99,10 @@ class ContainerRevealer(Gtk.Revealer):
 
         self.overlay = Gtk.Overlay()
         self.overlay.add(widget)
-
         self.add(self.overlay)
 
+    def self_remove(self, *args):
+        self.destroy()
 
 class KeySquareContainer(Gtk.Grid):
     def __init__(self, keyname, key_type, *args, **kwargs):
@@ -108,7 +110,7 @@ class KeySquareContainer(Gtk.Grid):
 
         self.props.name = "key-container"
         self.props.hexpand = True
-        self.props.margin = 5
+        # self.props.margin = 5
         self.props.halign = self.props.valign = Gtk.Align.CENTER
         self.set_size_request(80, 80)
 
@@ -151,7 +153,7 @@ class KeyRectangleContainer(Gtk.Grid):
             keyname = keyname.upper()
         
         self.props.name = "key-container"
-        self.props.margin = 5
+        # self.props.margin = 5
         self.props.hexpand = True
         self.props.halign = self.props.valign = Gtk.Align.CENTER
         self.set_size_request(120, 80)
@@ -235,7 +237,7 @@ class MouseContainer(Gtk.Grid):
 
         self.props.name = "mouse-container"
         self.props.hexpand = True
-        self.props.margin = 5
+        # self.props.margin = 5
         self.props.halign = self.props.valign = Gtk.Align.CENTER
         self.set_size_request(50, 80)
 
@@ -387,30 +389,30 @@ class Settings(Gtk.Grid):
         self.screen_icon = Gtk.Grid()
         self.screen_icon.props.expand = True
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
-        self.screen_icon.props.height_request = 160
-        self.screen_icon.props.width_request = 240
+        self.screen_icon.props.height_request = 140
+        self.screen_icon.props.width_request = 200
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
         self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
 
         northwest = Gtk.EventBox()
-        northwest.props.name = "north-west"
+        northwest.props.name = "NORTH_WEST"
         north = Gtk.EventBox()
-        north.props.name = "north"
+        north.props.name = "NORTH"
         northeast = Gtk.EventBox()
-        northeast.props.name = "north-east"
+        northeast.props.name = "NORTH_EAST"
         east = Gtk.EventBox()
-        east.props.name = "east"
+        east.props.name = "EAST"
         southeast = Gtk.EventBox()
-        southeast.props.name = "south-east"
+        southeast.props.name = "SOUTH_EAST"
         south = Gtk.EventBox()
-        south.props.name = "south"
+        south.props.name = "SOUTH"
         southwest = Gtk.EventBox()
-        southwest.props.name = "south-west"
+        southwest.props.name = "SOUTH_WEST"
         west = Gtk.EventBox()
-        west.props.name = "west"
+        west.props.name = "WEST"
         center = Gtk.EventBox()
-        center.props.name = "center"
+        center.props.name = "CENTER"
 
         for position_eventbox in [northwest, north, northeast, east, southeast, south, southwest, west, center]:
             position_eventbox.props.expand = True
