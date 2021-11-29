@@ -24,6 +24,7 @@ keystrokes_sources = [
   'window.py',
   'custom_widgets.py',
   'keystrokes_backend.py',
+  'active_window_manager.py',
   'utils.py'
 ]
 
