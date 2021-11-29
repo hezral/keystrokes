@@ -46,13 +46,15 @@ install_data('application.css',
 )
 
 other_icon_sources = [
-  join_paths('icons', project_domain + '-' + 'settings-symbolic' + '.svg'),
+  join_paths('icons', 'settings-symbolic' + '.svg'),
   join_paths('icons', 'mouse-left-symbolic.svg'),
   join_paths('icons', 'mouse-right-symbolic.svg'),
   join_paths('icons', 'mouse-scrollup-symbolic.svg'),
   join_paths('icons', 'mouse-scrolldown-symbolic.svg'),
   join_paths('icons', 'mouse-scrollleft-symbolic.svg'),
   join_paths('icons', 'mouse-scrollright-symbolic.svg'),
+  join_paths('icons', 'key-press.svg'),
+  join_paths('icons', 'key-release.svg'),
 ]
 iconsdir = join_paths(pkgdatadir, project_short_name, 'data', 'icons')
 install_data(other_icon_sources, install_dir: iconsdir)
