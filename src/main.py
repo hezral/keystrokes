@@ -12,6 +12,7 @@ from gi.repository import Gtk, Gdk, Gio, Granite, GLib
 
 from .window import KeystrokesWindow
 from .keystrokes_backend import MouseListener, KeyListener
+from .active_window_manager import ActiveWindowManager
 from . import utils
 
 from datetime import datetime
@@ -22,6 +23,7 @@ class Application(Gtk.Application):
     granite_settings = Granite.Settings.get_default()
     gtk_settings = Gtk.Settings.get_default()
     gio_settings = Gio.Settings(schema_id=app_id)
+
     utils = utils
 
     main_window = None
@@ -32,6 +34,8 @@ class Application(Gtk.Application):
         super().__init__(application_id=self.app_id,
                          flags=Gio.ApplicationFlags.FLAGS_NONE)
         
+        self.window_manager = ActiveWindowManager(gtk_application=self)
+    
         prefers_color_scheme = self.granite_settings.get_prefers_color_scheme()
         self.gtk_settings.set_property("gtk-application-prefer-dark-theme", prefers_color_scheme)
         self.granite_settings.connect("notify::prefers-color-scheme", self.on_prefers_color_scheme)
