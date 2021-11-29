@@ -9,9 +9,10 @@ from gi.repository import Gtk, Handy, GLib, Gdk
 from datetime import date, datetime
 from time import sleep
 
-# from .key_event import MouseListener, KeyListener
 from .custom_widgets import CustomDialog, Settings, ContainerRevealer, KeySquareContainer, KeyRectangleContainer, MouseContainer
 from . import utils
+
+from uuid import uuid4
 
 from inspect import currentframe, getframeinfo
 
@@ -23,7 +24,11 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     key_listener = None
     mouse_listener = None
 
+    active_app = None
+
     last_key = None
+    last_key_id = None
+    repeat_key_counter = 0
 
     key_press_timestamp = datetime.now()
     key_press_timestamp_old = datetime.now()
@@ -49,49 +54,69 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         self.key_grid = Gtk.Grid()
         self.key_grid.props.name = "key-grid"
-        self.key_grid.props.column_spacing = 20
+        self.key_grid.props.column_spacing = 15
         self.key_grid.props.expand = True
         self.key_grid.props.halign = Gtk.Align.FILL
-        self.key_grid.props.margin_top = 5
-        self.key_grid.props.margin_left = self.key_grid.props.margin_right = 20
+        self.key_grid.props.valign = Gtk.Align.FILL
+        self.key_grid.props.margin_top = 10
+        self.key_grid.props.margin_bottom = 0
+        self.key_grid.props.margin_left = self.key_grid.props.margin_right = 15
 
         self.key_info_grid = Gtk.Grid()
         self.key_info_grid.props.name = "key-info-grid"
         self.key_info_grid.props.margin = 10
+        self.key_info_grid.props.margin_top = 0
+        self.key_info_grid.props.column_spacing = 5
         self.key_info_grid.props.expand = True
-        self.key_info_grid.props.halign = Gtk.Align.FILL
+        self.key_info_grid.props.halign = Gtk.Align.END
         self.key_info_grid.props.valign = Gtk.Align.END
+
+        movement_label = Gtk.Label("0,0")
+        movement_label.props.name = "movement"
+        movement_label.props.expand = True
+        movement_label.props.justify = Gtk.Justification.LEFT
+        movement_label.props.halign = Gtk.Align.START
+        movement_label.set_size_request(95, -1)
+        self.movement_revealer = Gtk.Revealer()
+        self.movement_revealer.add(movement_label)
+        self.key_info_grid.attach(self.movement_revealer, 0, 0, 1, 1)
         
-        self.event_type_image = Gtk.Image()
-        self.event_type_image.props.expand = True
-        self.event_type_image.props.halign = Gtk.Align.START
-        self.key_info_grid.attach(self.event_type_image, 0, 0, 1, 1)
+        key_press_image = Gtk.Image().new_from_icon_name(icon_name="key-press", size=Gtk.IconSize.DND)
+        key_press_image.props.expand = True
+        self.key_press_revealer = Gtk.Revealer()
+        self.key_press_revealer.add(key_press_image)
+        self.key_info_grid.attach(self.key_press_revealer, 1, 0, 1, 1)
+
+        key_release_image = Gtk.Image().new_from_icon_name(icon_name="key-release", size=Gtk.IconSize.DND)
+        key_release_image.props.expand = True
+        self.key_release_revealer = Gtk.Revealer()
+        self.key_release_revealer.add(key_release_image)
+        self.key_info_grid.attach(self.key_release_revealer, 1, 0, 1, 1)
+
+        self.active_app_image = Gtk.Image()
+        self.active_app_image.props.expand = True
+        self.key_info_grid.attach(self.active_app_image, 2, 0, 1, 1)
 
         self.key_display_grid = Gtk.Grid()
         self.key_display_grid.props.expand = True
         self.key_display_grid.props.halign = Gtk.Align.FILL
         self.key_display_grid.props.valign = Gtk.Align.FILL
-        self.key_display_grid.attach(self.key_info_grid, 0, 0, 1, 1)
         self.key_display_grid.attach(self.key_grid, 0, 0, 1, 1)
+        self.key_display_grid.attach(self.key_info_grid, 0, 1, 1, 1)
         
-        self.active_app_image = Gtk.Image()
-        self.active_app_image.props.expand = True
-        self.active_app_image.props.halign = Gtk.Align.END
-        self.key_info_grid.attach(self.active_app_image, 1, 0, 1, 1)
-
         standby_label = Gtk.Label("•••")
         standby_label.props.name = "standby"
         standby_label.props.expand = True
         standby_label.props.halign = standby_label.props.valign = Gtk.Align.CENTER
-
-        self.stack = Gtk.Stack()
-        self.stack.add_named(standby_label, "standby")
-        self.stack.add_named(self.key_display_grid, "key-grid")
+        self.standby_revealer = Gtk.Revealer()
+        self.standby_revealer.add(standby_label)
+        self.standby_revealer.set_reveal_child(True)
 
         grid = Gtk.Grid()
         grid.props.expand = True
         grid.attach(self.header, 0, 0, 1, 1)
-        grid.attach(self.stack, 0, 0, 1, 1)
+        grid.attach(self.key_display_grid, 0, 0, 1, 1)
+        grid.attach(self.standby_revealer, 0, 0, 1, 1)
 
         window_handle = Handy.WindowHandle()
         window_handle.add(grid)
@@ -102,26 +127,11 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.show_all()
         self.set_resizable(False)
         self.set_keep_above(True)
-        self.set_size_request(280, 220)
+        self.set_size_request(280, 230)
         self.connect("button-press-event", self.show_window_controls)
-        # self.connect("screen-changed", self.on_screen_changed)
         self.reposition(self.app.gio_settings.get_string("screen-position"))
-
-    # def setup_keyboard_listener(self, *args):
-    #     if self.key_listener is not None:
-    #         self.key_listener.listener.stop()
-    #         self.key_listener = None
-    #         print(datetime.now(), "key listener stopped")
-
-    #     self.key_listener = KeyListener(self.on_key_press, self.on_key_release)
-
-    # def setup_mouse_listener(self, *args):
-    #     if self.mouse_listener is not None:
-    #         self.mouse_listener.listener.stop()
-    #         self.mouse_listener = None
-    #         print(datetime.now(), "mouse listener stopped")
-
-    #     self.mouse_listener = MouseListener(self.on_mouse_move, self.on_mouse_click, self.on_mouse_scroll)
+        if self.app.window_manager is not None:
+            self.app.window_manager._run(callback=self.on_active_window_changed)
 
     def setup_ui(self, transparency_value=None):
         if transparency_value is None:
@@ -146,7 +156,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.stick()
 
     def generate_headerbar(self):
-        settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("com.github.hezral-settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
+        settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
         settings_button.props.always_show_image = True
         settings_button.props.can_focus = False
         settings_button.props.margin = 2
@@ -192,6 +202,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.settings_dialog.header.props.show_close_button = True
 
     def reposition(self, position):
+        gravity = self.get_gravity()
         screen = self.get_screen()
         screen_width = screen.width()
         screen_height = screen.height()
@@ -202,46 +213,78 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         work_area_width = work_area.width
         work_area_height = work_area.height
         window_size = self.get_size()
-        # print("screen width, height: ", work_area_width, work_area_height, "x, y: ", work_area_x, work_area_y, "diff:", screen_height-work_area_height, window_size)
+        x = None
+        y = None
+
+        # if position not in gravity.value_name:
+        a, b, c, d = 0, 1, 1, 2
+        # self.key_info_grid.props.halign = Gtk.Align.END
+        gravity = Gdk.Gravity.SOUTH_EAST
+        x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, screen_height-window_size[1]
+        align = Gtk.Align.END
+
+        for i in range(4):
+            self.key_info_grid.remove_column(0)
 
         self.set_position(Gtk.WindowPosition.NONE)
-        if position == "north-west":
-            self.set_gravity(Gdk.Gravity.NORTH_WEST)
-            self.move((screen_height-work_area_height)-work_area_y, (screen_height-work_area_height))
-        elif position == "north":
-            self.set_gravity(Gdk.Gravity.NORTH)
-            self.move((screen_width/2)-(window_size[0]/2), (screen_height-work_area_height))
-        elif position == "north-east":
-            self.set_gravity(Gdk.Gravity.NORTH_EAST)
-            self.move(screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height-work_area_height))
-        elif position == "east":
-            self.set_gravity(Gdk.Gravity.EAST)
-            self.move(screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height/2)-(window_size[1]/2))
-        elif position == "south-east":
-            self.set_gravity(Gdk.Gravity.SOUTH_EAST)
-            self.move(screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, screen_height-window_size[1])
-        elif position == "south":
-            self.set_gravity(Gdk.Gravity.SOUTH)
-            self.move((screen_width/2)-(window_size[0]/2), screen_height-window_size[1])
-        elif position == "south-west":
-            self.set_gravity(Gdk.Gravity.SOUTH_WEST)
-            self.move((screen_height-work_area_height)-work_area_y, screen_height-window_size[1])
-        elif position == "west":
-            self.set_gravity(Gdk.Gravity.WEST)
-            self.move((screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_size[1]/2))
+        
+        if position == "NORTH_WEST":
+            gravity = Gdk.Gravity.NORTH_WEST
+            x, y = (screen_height-work_area_height)-work_area_y, (screen_height-work_area_height)
+            a, b, c, d = 2, 1, 1, 0
+            align = Gtk.Align.START
+        elif position == "NORTH":
+            gravity = Gdk.Gravity.NORTH
+            x, y = (screen_width/2)-(window_size[0]/2), (screen_height-work_area_height)
+            align = Gtk.Align.CENTER
+        elif position == "NORTH_EAST":
+            gravity = Gdk.Gravity.NORTH_EAST
+            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height-work_area_height)
+            align = Gtk.Align.END
+        elif position == "EAST":
+            gravity = Gdk.Gravity.EAST
+            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height/2)-(window_size[1]/2)
+            align = Gtk.Align.END
+        elif position == "SOUTH_EAST":
+            gravity = Gdk.Gravity.SOUTH_EAST
+            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, screen_height-window_size[1]
+            align = Gtk.Align.END
+        elif position == "SOUTH":
+            gravity = Gdk.Gravity.SOUTH
+            x, y = (screen_width/2)-(window_size[0]/2), screen_height-window_size[1]
+            align = Gtk.Align.CENTER
+        elif position == "SOUTH_WEST":
+            gravity = Gdk.Gravity.SOUTH_WEST
+            x, y = (screen_height-work_area_height)-work_area_y, screen_height-window_size[1]
+            a, b, c, d = 2, 1, 1, 0
+            align = Gtk.Align.START
+        elif position == "WEST":
+            gravity = Gdk.Gravity.WEST
+            x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_size[1]/2)
+            a, b, c, d = 2, 1, 1, 0
+            align = Gtk.Align.START
         else:
-            self.set_gravity(Gdk.Gravity.CENTER)
+            gravity = Gdk.Gravity.CENTER
             self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+            align = Gtk.Align.CENTER
+
+        if x and y:
+            self.app.gio_settings.set_int("pos-x", x)
+            self.app.gio_settings.set_int("pos-y", y)
+
+        self.set_gravity(gravity)
+        self.move(self.app.gio_settings.get_int("pos-x"), self.app.gio_settings.get_int("pos-y"))
+        self.key_info_grid.props.halign = align
+        self.key_info_grid.attach(self.movement_revealer, a, 0, 1, 1)
+        self.key_info_grid.attach(self.key_press_revealer, b, 0, 1, 1)
+        self.key_info_grid.attach(self.key_release_revealer, c, 0, 1, 1)
+        self.key_info_grid.attach(self.active_app_image, d, 0, 1, 1)
 
     def show_window_controls(self, *args):
-        if self.header.props.show_close_button:
-            self.header.props.show_close_button = False
-            self.settings_revealer.set_reveal_child(False)
-        else:
-            self.header.props.show_close_button = True
-            self.settings_revealer.set_reveal_child(True)
-            GLib.timeout_add(5000, self.header.set_show_close_button, False)
-            GLib.timeout_add(5000, self.settings_revealer.set_reveal_child, False)
+        self.header.props.show_close_button = True
+        self.settings_revealer.set_reveal_child(True)
+        GLib.timeout_add(5000, self.header.set_show_close_button, False)
+        GLib.timeout_add(5000, self.settings_revealer.set_reveal_child, False)
 
     def on_settings_clicked(self, button):
         self.generate_settings_dialog()
@@ -250,29 +293,24 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         print(previous_screen)
         self.reposition(self.app.gio_settings.get_string("screen-position"))
 
-    def on_stack_view(self, *args):
-        if self.stack.get_visible_child_name() == "key-grid" and len(self.key_grid.get_children()) == 0:
-            self.stack.set_visible_child_name("standby")
-        else:
-            self.stack.set_visible_child_name("key-grid")
-
+    def on_key_removed(self, *args):
         if self.app.gio_settings.get_value("auto-position"):
             self.reposition(self.app.gio_settings.get_string("screen-position"))
-        else:
-            self.set_position(Gtk.WindowPosition.NONE)
-
+        # else:
+        #     self.set_position(Gtk.WindowPosition.NONE)
+        
     def on_event(self):
-        active_app = self.app.utils.get_active_app_using_active_window()
-        if active_app is not None:
-            key = list(active_app.keys())
-            if len(key) != 0:
-                self.active_app_image.set_from_icon_name(icon_name=active_app[key[0]][0], size=Gtk.IconSize.DND)
-                self.active_app_image.set_pixel_size(32)
-                # self.key_info_grid.show_all()
-                if self.app.app_id.split(".")[-1] in key[0]:
-                    return False
-                else:
-                    return True
+        if self.app.app_id.split(".")[-1].lower() in self.active_app.lower():
+            return False
+        else:
+            return True
+
+    def on_active_window_changed(self, window_id):
+        app_data = self.app.utils.get_app_by_window_id(window_id)
+        if len(app_data) != 0:
+            self.active_app = app_data[0]
+            self.active_app_image.set_from_icon_name(icon_name=app_data[1], size=Gtk.IconSize.DND)
+            self.active_app_image.set_pixel_size(32)
         
     def on_key_event(self, key, event):
         if self.on_event():
@@ -285,6 +323,9 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 key = key.name
                 shape_type = "rectangle"
 
+            if key == self.last_key:
+                self.repeat_key_counter += 1
+
             self.add_to_display(key, key_type, shape_type, event)
 
             self.last_key = key
@@ -292,14 +333,25 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def on_key_press(self, key):
         if self.app.gio_settings.get_value("monitor-key-press"):
             self.on_key_event(key, "key-press")
+            self.key_press_revealer.set_reveal_child(True)
+            self.key_release_revealer.set_reveal_child(False)
 
     def on_key_release(self, key):
         if self.app.gio_settings.get_value("monitor-key-release"):
             self.on_key_event(key, "key-release")
+            self.key_release_revealer.set_reveal_child(True)
+            self.key_press_revealer.set_reveal_child(False)
 
     def on_mouse_move(self, x, y):
+        def update_movement(data):
+            x, y = data
+            self.movement_revealer.get_child().props.label = "x: {0}, y: {1}".format(x, y)
+            self.movement_revealer.set_reveal_child(True)
+
         if self.app.gio_settings.get_value("monitor-movements"):
-            print('Pointer moved to {0}'.format((x, y)))
+            GLib.idle_add(update_movement, (x, y))
+        else:
+            self.movement_revealer.set_reveal_child(False)
 
     def on_mouse_click(self, x, y, button, pressed):
         if self.app.gio_settings.get_value("monitor-clicks"):
@@ -337,89 +389,80 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                     pass
 
     def add_key(self, data):
-        key, key_type, shape_type = data
+        key, key_type, shape_type, id = data
         index = len(self.key_grid.get_children())
-
+    
         if index == 0:
-            self.on_stack_view()
+            self.on_key_removed()
 
         if shape_type == "square":
             if key_type == "mouse":
-                self.key_grid.attach(ContainerRevealer(key, MouseContainer(key, key_type)), index, 0, 1, 1)
+                self.key_grid.attach(ContainerRevealer(key, MouseContainer(key, key_type), id), index, 0, 1, 1)
             else:
-                self.key_grid.attach(ContainerRevealer(key, KeySquareContainer(key, key_type)), index, 0, 1, 1)
+                self.key_grid.attach(ContainerRevealer(key, KeySquareContainer(key, key_type), id), index, 0, 1, 1)
         else:
-            self.key_grid.attach(ContainerRevealer(key, KeyRectangleContainer(key, key_type)), index, 0, 1, 1)
+            self.key_grid.attach(ContainerRevealer(key, KeyRectangleContainer(key, key_type), id), index, 0, 1, 1)
 
         self.key_grid.show_all()
 
         for child in self.key_grid.get_children():
-            child.set_reveal_child(True)
-        
+            if isinstance(child, Gtk.Revealer):
+                child.set_reveal_child(True)
+
     def remove_key(self, data):
         if data is None:
             if len(self.key_grid.get_children()) != 0:
                 self.key_grid.get_children()[-1].set_reveal_child(False)
-            GLib.timeout_add(self.key_remove_delay, self.key_grid.remove_column, 0)
+            # GLib.timeout_add(self.key_remove_delay, self.key_grid.remove_column, 0)
+            # sleep(0.1)
+            self.key_grid.remove_column(0)
         else:
             key_grid_child = data
             key_grid_child.destroy()
-        GLib.timeout_add(self.key_remove_delay, self.on_stack_view, None)
+        
+        # GLib.timeout_add(self.key_remove_delay, self.on_key_removed, None)
+        print("{0}, triggered at line: {1}, data: {2}, child_count: {3}".format(datetime.now(), getframeinfo(currentframe()).lineno, "remove_key", len(self.key_grid.get_children())))
 
     def get_last_key_grid_child(self, key):
         if len(self.key_grid.get_children()) != 0:
             last_key_grid_child = [child for child in self.key_grid.get_children() if child.props.name == key]
             if len(last_key_grid_child) == 1:
                 return last_key_grid_child[0]
-
-
+    
     def add_to_display(self, key=None, key_type=None, shape_type=None, event=None):
 
-        def queue():
-            GLib.idle_add(self.add_key, (key, key_type, shape_type))
-            sleep(0.25)
-            GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
+        id = uuid4().hex
+        self.last_key_id = id
 
-        key_grid_children_count = len(self.key_grid.get_children())
+        @utils.run_async
+        def queue(*args):
+            self.standby_revealer.set_reveal_child(False)
+            # sleep(0.25)
+            GLib.idle_add(self.add_key, (key, key_type, shape_type, id))
+            
+            if self.app.gio_settings.get_value("monitor-repeatkeys"):
+                if self.repeat_key_counter != 0:
+                    ...
+            else:
+                sleep(self.app.gio_settings.get_int("display-timeout")/1000)
 
-        if self.app.gio_settings.get_value("monitor-repeatkeys"):
-            ...
-            # if self.last_key is not None:
-            #     if key == self.last_key:
-            #         if key_grid_children_count != 0:
-            #             last_key_child = self.get_last_key_grid_child(self.last_key)
-            #             if last_key_child is not None:
-            #                 if last_key_child.repeat_key_counter == 0:
-            #                     last_key_child.repeat_key_counter += 1
-            #                     last_key_child.overlay.add_overlay(last_key_child.counter)
-            #                 else:
-            #                     last_key_child.repeat_key_counter += 1
-            #                 last_key_child.counter.props.label = str(last_key_child.repeat_key_counter)
-            #                 last_key_child.show_all()
-            #             else:
-            #                 # print("triggered at line: {3}, event: {5}, timestamp: {4}, key_type: {0},  key: {1},   last_key: {2}".format(key_type, key, self.last_key, getframeinfo(currentframe()).lineno, datetime.now()), event)
-            #                 # GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            #         else:
-            #             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #             self.key_press_timestamp_diff = int((self.key_press_timestamp-self.key_press_timestamp_old).total_seconds()*1000)
-            #             print(self.key_press_timestamp_diff)
-            #             if self.key_press_timestamp_diff > self.key_press_timeout:
-            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            #     else:
-            #         last_key_child = self.get_last_key_grid_child(self.last_key)
-            #         if last_key_child is not None:
-            #             if last_key_child.repeat_key_counter > 1:
-            #                 GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            #             else:
-            #                 GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #                 GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            #         else:
-            #             GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #             GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-            # else:
-            #     GLib.timeout_add(self.key_add_delay, self.add_key, (key, key_type, shape_type))
-            #     GLib.timeout_add(self.app.gio_settings.get_int("display-timeout"), self.remove_key, None)
-        else:
-            queue()
+                key_widget = [child for child in self.key_grid.get_children() if (hasattr(child, 'id') and child.id == id)]
+                if key_widget:
+                    try:
+                        sleep(0.25)
+                        key_widget[0].set_reveal_child(False)
+                        sleep(0.25)
+                        GLib.idle_add(key_widget[0].self_remove, None)
+                        sleep(0.25)
+                        GLib.idle_add(self.on_key_removed, None)
+                    except:
+                        import traceback
+                        print(traceback.format_exc())
+                        pass
+                if len(self.key_grid.get_children()) == 0:
+                    self.standby_revealer.set_reveal_child(True)
+                self.key_release_revealer.set_reveal_child(False)
+                self.key_press_revealer.set_reveal_child(False)
+
+        queue()
+
