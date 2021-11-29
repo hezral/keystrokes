@@ -157,122 +157,114 @@ def get_all_apps(app=None):
     else:
         return all_apps
 
-def get_active_app_using_active_window():
-    running_app = {}
+def get_app_by_window_id(window_id):
+    running_app = []
     all_apps = get_all_apps()
 
     import os
-    import re
     import chardet
     import Xlib
     import Xlib.display
 
     display = Xlib.display.Display()
-    root = display.screen().root
-    root.change_attributes(event_mask=Xlib.X.FocusChangeMask)
     
-    NET_ACTIVE_WINDOW = display.intern_atom('_NET_ACTIVE_WINDOW')
     GTK_APPLICATION_ID = display.intern_atom('_GTK_APPLICATION_ID')
     WM_NAME = display.intern_atom('WM_NAME')
     WM_CLASS = display.intern_atom('WM_CLASS')
     BAMF_DESKTOP_FILE = display.intern_atom('_BAMF_DESKTOP_FILE')
     
     try:
-        window_id_list = root.get_full_property(NET_ACTIVE_WINDOW, Xlib.X.AnyPropertyType).value
+        window = None
+        bamf_desktop_file = None
+        gtk_application_id = None
+        wm_class = None
+        wm_name = None
 
-        for window_id in window_id_list:
-            
-            window = None
-            bamf_desktop_file = None
-            gtk_application_id = None
-            wm_class = None
-            wm_name = None
+        window = display.create_resource_object('window', window_id)
 
-            window = display.create_resource_object('window', window_id)
+        if window.get_full_property(BAMF_DESKTOP_FILE, 0):
+            encoding = chardet.detect(window.get_full_property(BAMF_DESKTOP_FILE, 0).value)['encoding']
+            bamf_desktop_file = window.get_full_property(BAMF_DESKTOP_FILE, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
+        
+        if window.get_full_property(GTK_APPLICATION_ID, 0):
+            encoding = chardet.detect(window.get_full_property(GTK_APPLICATION_ID, 0).value)['encoding']
+            gtk_application_id = window.get_full_property(GTK_APPLICATION_ID, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
+        
+        if window.get_full_property(WM_CLASS, 0):
+            encoding = chardet.detect(window.get_full_property(WM_CLASS, 0).value)['encoding']
+            wm_class = window.get_full_property(WM_CLASS, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
+        
+        if window.get_full_property(WM_NAME, 0):
+            encoding = chardet.detect(window.get_full_property(WM_NAME, 0).value)['encoding']
+            try:
+                wm_name = window.get_full_property(WM_NAME, 0).value.decode(encoding).lower()
+            except:
+                wm_name = window.get_full_property(WM_NAME, 0).value.decode("utf-8").lower()
 
-            if window.get_full_property(BAMF_DESKTOP_FILE, 0):
-                encoding = chardet.detect(window.get_full_property(BAMF_DESKTOP_FILE, 0).value)['encoding']
-                bamf_desktop_file = window.get_full_property(BAMF_DESKTOP_FILE, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
-            
-            if window.get_full_property(GTK_APPLICATION_ID, 0):
-                encoding = chardet.detect(window.get_full_property(GTK_APPLICATION_ID, 0).value)['encoding']
-                gtk_application_id = window.get_full_property(GTK_APPLICATION_ID, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
-            
-            if window.get_full_property(WM_CLASS, 0):
-                encoding = chardet.detect(window.get_full_property(WM_CLASS, 0).value)['encoding']
-                wm_class = window.get_full_property(WM_CLASS, 0).value.replace(b'\x00',b' ').decode(encoding).lower()
-            
-            if window.get_full_property(WM_NAME, 0):
-                encoding = chardet.detect(window.get_full_property(WM_NAME, 0).value)['encoding']
-                try:
-                    wm_name = window.get_full_property(WM_NAME, 0).value.decode(encoding).lower()
-                except:
-                    wm_name = window.get_full_property(WM_NAME, 0).value.decode("utf-8").lower()
+        for key in sorted(all_apps.keys()):
 
-            for key in sorted(all_apps.keys()):
+            app_name = None
+            app_name_ori = None
+            app_icon = None
+            app_icon_ori = None
+            startup_wm_class = None
+            startup_wm_class_ori = None
+            no_display = None
+            desktop_file_path = None
+            desktop_file_path_ori = None
+            app_exec = None
+            flatpak = None
 
-                app_name = None
-                app_name_ori = None
-                app_icon = None
-                app_icon_ori = None
+            app_name = key.split("#")[0].lower()
+            app_name_ori = key.split("#")[0]
+            app_icon = all_apps[key][0].lower()
+            app_icon_ori = all_apps[key][0]
+
+            if all_apps[key][1] is not None:
+                startup_wm_class = all_apps[key][1].lower()
+                startup_wm_class_ori = all_apps[key][1]
+            else:
                 startup_wm_class = None
-                startup_wm_class_ori = None
-                no_display = None
-                desktop_file_path = None
-                desktop_file_path_ori = None
-                app_exec = None
-                flatpak = None
 
-                app_name = key.split("#")[0].lower()
-                app_name_ori = key.split("#")[0]
-                app_icon = all_apps[key][0].lower()
-                app_icon_ori = all_apps[key][0]
+            no_display = all_apps[key][2]
+                
+            desktop_file_path = all_apps[key][3].lower()
+            desktop_file_path_ori = all_apps[key][3]
 
-                if all_apps[key][1] is not None:
-                    startup_wm_class = all_apps[key][1].lower()
-                    startup_wm_class_ori = all_apps[key][1]
-                else:
-                    startup_wm_class = None
+            app_exec = all_apps[key][4]
+            flatpak = all_apps[key][5]
 
-                no_display = all_apps[key][2]
+            if bamf_desktop_file:
+                if os.path.basename(bamf_desktop_file) == os.path.basename(desktop_file_path):
+                    running_app = [app_name_ori, app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
+                    break
                     
-                desktop_file_path = all_apps[key][3].lower()
-                desktop_file_path_ori = all_apps[key][3]
+            elif gtk_application_id:
+                if gtk_application_id == app_icon:
+                    running_app = [app_name_ori, app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
+                    break
 
-                app_exec = all_apps[key][4]
-                flatpak = all_apps[key][5]
+            elif wm_name:
+                if " - " in wm_name:
+                    wm_name = wm_name.split(" - ")[-1]
+                if wm_name == app_name or wm_name == startup_wm_class or wm_name in app_icon:
+                    running_app = [app_name_ori, app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
+                    break
 
-                if bamf_desktop_file:
-                    if os.path.basename(bamf_desktop_file) == os.path.basename(desktop_file_path):
-                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
-                        break
-                        
-                elif gtk_application_id:
-                    if gtk_application_id == app_icon:
-                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
-                        break
-
-                elif wm_name:
-                    if " - " in wm_name:
-                        wm_name = wm_name.split(" - ")[-1]
-                    if wm_name == app_name or wm_name == startup_wm_class or wm_name in app_icon:
-                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
-                        break
-
-                elif wm_class:
-                    wm_class_keys = wm_class.split(",")
-                    for wm_class_key in wm_class_keys:
-                        if wm_class_key != '':
-                            if wm_class_key.lower() in app_icon or wm_class_key.lower() in app_exec:
-                                running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
-                                break
-                            elif "-" in wm_class_key:
-                                for wm_class_subkey in wm_class_key.split("-"):
-                                    if wm_class_subkey.lower() == app_name or wm_class_subkey.lower() == startup_wm_class or wm_class_subkey.lower() in app_icon:
-                                        running_app[app_name_ori] = [app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
-                                        break
+            elif wm_class:
+                wm_class_keys = wm_class.split(",")
+                for wm_class_key in wm_class_keys:
+                    if wm_class_key != '':
+                        if wm_class_key.lower() in app_icon or wm_class_key.lower() in app_exec:
+                            running_app = [app_name_ori, app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
+                            break
+                        elif "-" in wm_class_key:
+                            for wm_class_subkey in wm_class_key.split("-"):
+                                if wm_class_subkey.lower() == app_name or wm_class_subkey.lower() == startup_wm_class or wm_class_subkey.lower() in app_icon:
+                                    running_app = [app_name_ori, app_icon_ori, startup_wm_class_ori, no_display, desktop_file_path_ori, app_exec, flatpak]
+                                    break
         display = None
-        root = None
+        window = None
         return running_app
 
     except Xlib.error.XError: #simplify dealing with BadWindow
