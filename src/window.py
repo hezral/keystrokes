@@ -201,71 +201,74 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         self.settings_dialog.header.props.show_close_button = True
 
-    def reposition(self, position):
-        gravity = self.get_gravity()
+    def reposition(self, *args):
+
+        gravity = Gdk.Gravity(self.app.gio_settings.get_int("screen-position"))
+
+        window_width, window_height = self.get_size()
+        
         screen = self.get_screen()
         screen_width = screen.width()
         screen_height = screen.height()
+
         monitor = screen.get_monitor_at_window(self.get_window())
         work_area = screen.get_monitor_workarea(monitor)
+        
+        monitor = screen.get_primary_monitor()
+        work_area = screen.get_monitor_workarea(monitor)
+
         work_area_x = work_area.x
         work_area_y = work_area.y
         work_area_width = work_area.width
         work_area_height = work_area.height
-        window_size = self.get_size()
+        
+        logging.info("monitor:{0}, screen:{1}, work_area_x_y:{2}, work_area_size:{3}, window_size:{4}, gravity:{5}".format(monitor, (screen_width, screen_height),(work_area_x, work_area_y), (work_area_width, work_area_height), (window_width, window_height), gravity.value_name))
+
         x = None
         y = None
 
-        # if position not in gravity.value_name:
+        # defaults
         a, b, c, d = 0, 1, 1, 2
-        # self.key_info_grid.props.halign = Gtk.Align.END
-        gravity = Gdk.Gravity.SOUTH_EAST
-        x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, screen_height-window_size[1]
+        x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, screen_height-window_height
         align = Gtk.Align.END
 
         for i in range(4):
             self.key_info_grid.remove_column(0)
 
         self.set_position(Gtk.WindowPosition.NONE)
-        
-        if position == "NORTH_WEST":
-            gravity = Gdk.Gravity.NORTH_WEST
+
+        if gravity.value_name == "GDK_GRAVITY_NORTH_WEST":
             x, y = (screen_height-work_area_height)-work_area_y, (screen_height-work_area_height)
             a, b, c, d = 2, 1, 1, 0
             align = Gtk.Align.START
-        elif position == "NORTH":
-            gravity = Gdk.Gravity.NORTH
-            x, y = (screen_width/2)-(window_size[0]/2), (screen_height-work_area_height)
+        elif gravity.value_name =="GDK_GRAVITY_NORTH":
+            x, y = (screen_width/2)-(window_width/2), (screen_height-work_area_height)
             align = Gtk.Align.CENTER
-        elif position == "NORTH_EAST":
-            gravity = Gdk.Gravity.NORTH_EAST
-            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height-work_area_height)
+        elif gravity.value_name == "GDK_GRAVITY_NORTH_EAST":
+            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, (screen_height-work_area_height)
             align = Gtk.Align.END
-        elif position == "EAST":
-            gravity = Gdk.Gravity.EAST
-            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, (screen_height/2)-(window_size[1]/2)
+        elif gravity.value_name == "GDK_GRAVITY_EAST":
+            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, (screen_height/2)-(window_height/2)
             align = Gtk.Align.END
-        elif position == "SOUTH_EAST":
-            gravity = Gdk.Gravity.SOUTH_EAST
-            x, y = screen_width-window_size[0]-(screen_height-work_area_height)+work_area_y, screen_height-window_size[1]
+        elif gravity.value_name == "GDK_GRAVITY_SOUTH_EAST":
+            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, screen_height-window_height
             align = Gtk.Align.END
-        elif position == "SOUTH":
-            gravity = Gdk.Gravity.SOUTH
-            x, y = (screen_width/2)-(window_size[0]/2), screen_height-window_size[1]
+        elif gravity.value_name == "GDK_GRAVITY_SOUTH":
+            x, y = (screen_width/2)-(window_width/2), screen_height-window_height
             align = Gtk.Align.CENTER
-        elif position == "SOUTH_WEST":
-            gravity = Gdk.Gravity.SOUTH_WEST
-            x, y = (screen_height-work_area_height)-work_area_y, screen_height-window_size[1]
+        elif gravity.value_name == "GDK_GRAVITY_SOUTH_WEST":
+            x, y = (screen_height-work_area_height)-work_area_y, screen_height-window_height
             a, b, c, d = 2, 1, 1, 0
             align = Gtk.Align.START
-        elif position == "WEST":
-            gravity = Gdk.Gravity.WEST
-            x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_size[1]/2)
+        elif gravity.value_name == "GDK_GRAVITY_WEST":
+            x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_height/2)
             a, b, c, d = 2, 1, 1, 0
             align = Gtk.Align.START
+        elif gravity.value_name == "GDK_GRAVITY_CENTER":
+            # x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_height/2)
+            align = Gtk.Align.CENTER
         else:
-            gravity = Gdk.Gravity.CENTER
-            self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
+            # self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
             align = Gtk.Align.CENTER
 
         if x and y:
