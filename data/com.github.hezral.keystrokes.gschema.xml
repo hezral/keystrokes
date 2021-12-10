@@ -6,10 +6,10 @@
             <summary>Display app window on all workspaces</summary>
             <description>Display Clips app window on all workspaces</description>
         </key>
-        <key type="s" name="screen-position">
-            <default>"south-east"</default>
+        <key type="i" name="screen-position">
+            <default>1</default>
             <summary>Screen position</summary>
-            <description>Screen position</description>
+            <description>Screen position based on Gdk.Gravity values</description>
         </key>
         <key type="b" name="auto-position">
             <default>true</default>

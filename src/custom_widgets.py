@@ -378,6 +378,18 @@ class SubSettings(Gtk.Grid):
 
 
 class Settings(Gtk.Grid):
+
+    NORTH_WEST = 1 #the reference point is at the top left corner
+    NORTH = 2 #the reference point is in the middle of the top edge
+    NORTH_EAST = 3 #the reference point is at the top right corner
+    WEST = 4 #the reference point is at the middle of the left edge
+    CENTER = 5 #the reference point is at the center of the window
+    EAST = 6 #the reference point is at the middle of the right edge
+    SOUTH_WEST = 7 #the reference point is at the lower left corner
+    SOUTH = 8 #the reference point is at the middle of the lower edge
+    SOUTH_EAST = 9 #the reference point is at the lower right corner
+    STATIC = 10 #the reference point is at the top left corner of the window itself, ignoring window manager decorations
+
     def __init__(self, gtk_application, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -391,28 +403,26 @@ class Settings(Gtk.Grid):
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
         self.screen_icon.props.height_request = 140
         self.screen_icon.props.width_request = 200
-        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
-        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
 
         northwest = Gtk.EventBox()
-        northwest.props.name = "NORTH_WEST"
+        northwest.props.name = str(self.NORTH_WEST)
         north = Gtk.EventBox()
-        north.props.name = "NORTH"
+        north.props.name = str(self.NORTH)
         northeast = Gtk.EventBox()
-        northeast.props.name = "NORTH_EAST"
+        northeast.props.name = str(self.NORTH_EAST)
         east = Gtk.EventBox()
-        east.props.name = "EAST"
+        east.props.name = str(self.EAST)
         southeast = Gtk.EventBox()
-        southeast.props.name = "SOUTH_EAST"
+        southeast.props.name = str(self.SOUTH_EAST)
         south = Gtk.EventBox()
-        south.props.name = "SOUTH"
+        south.props.name = str(self.SOUTH)
         southwest = Gtk.EventBox()
-        southwest.props.name = "SOUTH_WEST"
+        southwest.props.name = str(self.SOUTH_WEST)
         west = Gtk.EventBox()
-        west.props.name = "WEST"
+        west.props.name = str(self.WEST)
         center = Gtk.EventBox()
-        center.props.name = "CENTER"
+        center.props.name = str(self.CENTER)
 
         for position_eventbox in [northwest, north, northeast, east, southeast, south, southwest, west, center]:
             position_eventbox.props.expand = True
@@ -426,7 +436,7 @@ class Settings(Gtk.Grid):
             button.props.halign = button.props.valign = Gtk.Align.CENTER
             button.get_style_context().add_class("position-default")
             position_eventbox.add(button)
-            if self.app.gio_settings.get_string("screen-position") == position_eventbox.props.name:
+            if self.app.gio_settings.get_int("screen-position") == int(position_eventbox.props.name):
                 button.get_style_context().add_class("position-selected")
 
         self.screen_icon.attach(northwest, 0, 0, 1, 1)
