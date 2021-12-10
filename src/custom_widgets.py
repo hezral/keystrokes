@@ -69,7 +69,7 @@ class CustomDialog(Gtk.Window):
         self.get_style_context().add_class("custom-decoration-overlay")
         self.set_titlebar(self.header)
         self.props.transient_for = parent_window
-        self.props.modal = True
+        # self.props.modal = True
         self.props.resizable = False
         self.props.window_position = Gtk.WindowPosition.CENTER_ON_PARENT
         self.add(grid)
