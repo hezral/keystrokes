@@ -16,6 +16,9 @@ from uuid import uuid4
 
 from inspect import currentframe, getframeinfo
 
+import logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(asctime)s, %(funcName)s:%(lineno)d: %(message)s")
+
 class KeystrokesWindow(Handy.ApplicationWindow):
     __gtype_name__ = 'KeystrokesWindow'
 
@@ -46,7 +49,9 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     key_remove_delay = 250
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super().__init__(
+            **kwargs
+        )
 
         self.app = self.props.application
 
@@ -114,12 +119,15 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         grid = Gtk.Grid()
         grid.props.expand = True
-        grid.attach(self.header, 0, 0, 1, 1)
         grid.attach(self.key_display_grid, 0, 0, 1, 1)
         grid.attach(self.standby_revealer, 0, 0, 1, 1)
 
+        overlay = Gtk.Overlay()
+        overlay.add(grid)
+        overlay.add_overlay(self.header)
+
         window_handle = Handy.WindowHandle()
-        window_handle.add(grid)
+        window_handle.add(overlay)
 
         self.add(window_handle)
         self.props.name = "main"
@@ -128,8 +136,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.set_resizable(False)
         self.set_keep_above(True)
         self.set_size_request(280, 230)
-        self.connect("button-press-event", self.show_window_controls)
-        self.reposition(self.app.gio_settings.get_string("screen-position"))
+        self.reposition()
         if self.app.window_manager is not None:
             self.app.window_manager._run(callback=self.on_active_window_changed)
 
@@ -137,23 +144,15 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         if transparency_value is None:
             transparency_value = float(self.app.gio_settings.get_int("display-transparency")/100)
         css = "window#main.background {background-color: rgba(0,0,0," + str(transparency_value) + ");}"
-        # if transparency_value <= 0.1:
-        #     print(transparency_value)
-        #     css = css + "\n" + "headerbar#main button {" + "color: black;}"
-        #     css = css + "\n" + "headerbar#main button {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
-        #     # print(transparency_value)
-        # css = css + "\n" + "window > decoration {box-shadow: 0 0 0 0px rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 0px  rgba(0,0,0,0), 0 0px 16px  rgba(0,0,0,0);}"
-        # css = css + "\n" + "window > decoration-overlay {box-shadow: 0 0 0 1px rgba(0,0,0,0), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0), 0 3px 3px -3px rgba(0,0,0,0);}"
-        # css = css + "\n" + "decoration {box-shadow: 0 0 0 1px rgba(0,0,0,0.75), 0 13px 16px 4px rgba(0,0,0,0), 0 3px 4px rgba(0,0,0,0.25), 0 3px 3px -3px rgba(0,0,0,0.45);}"
-        # css = css + "\n" + "decoration-overlay {box-shadow: 0 -1px rgba(255,255,255,0.04) inset, 0 1px rgba(255,255,255,0.06) inset, 1px 0 rgba(255,255,255,0.014) inset, -1px 0 rgba(255,255,255,0.14) inset;}"
-        # else:
-        #     css = css + "\n" + "headerbar#main button {" + "color: white;}"
         css_provider = Gtk.CssProvider()
         css_provider.load_from_data(bytes(css.encode()))
         self.get_style_context().add_provider(css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
 
         if self.app.gio_settings.get_value("sticky-mode"):
             self.stick()
+
+        self.connect("button-press-event", self.show_window_controls)
+        self.connect("screen-changed", self.on_screen_changed)
 
     def generate_headerbar(self):
         settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
@@ -293,12 +292,12 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.generate_settings_dialog()
 
     def on_screen_changed(self, widget, previous_screen):
-        print(previous_screen)
-        self.reposition(self.app.gio_settings.get_string("screen-position"))
+        logging.info(previous_screen)
+        # self.reposition()
 
     def on_key_removed(self, *args):
         if self.app.gio_settings.get_value("auto-position"):
-            self.reposition(self.app.gio_settings.get_string("screen-position"))
+            self.reposition()
         # else:
         #     self.set_position(Gtk.WindowPosition.NONE)
         
@@ -336,14 +335,14 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def on_key_press(self, key):
         if self.app.gio_settings.get_value("monitor-key-press"):
             self.on_key_event(key, "key-press")
-            self.key_press_revealer.set_reveal_child(True)
-            self.key_release_revealer.set_reveal_child(False)
+            # self.key_press_revealer.set_reveal_child(True)
+            # self.key_release_revealer.set_reveal_child(False)
 
     def on_key_release(self, key):
         if self.app.gio_settings.get_value("monitor-key-release"):
             self.on_key_event(key, "key-release")
-            self.key_release_revealer.set_reveal_child(True)
-            self.key_press_revealer.set_reveal_child(False)
+            # self.key_release_revealer.set_reveal_child(True)
+            # self.key_press_revealer.set_reveal_child(False)
 
     def on_mouse_move(self, x, y):
         def update_movement(data):
@@ -396,7 +395,8 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         index = len(self.key_grid.get_children())
     
         if index == 0:
-            self.on_key_removed()
+            if self.app.gio_settings.get_value("auto-position"):
+                self.reposition()
 
         if shape_type == "square":
             if key_type == "mouse":
@@ -447,25 +447,27 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                 if self.repeat_key_counter != 0:
                     ...
             else:
-                sleep(self.app.gio_settings.get_int("display-timeout")/1000)
+                ...
 
-                key_widget = [child for child in self.key_grid.get_children() if (hasattr(child, 'id') and child.id == id)]
-                if key_widget:
-                    try:
-                        sleep(0.25)
-                        key_widget[0].set_reveal_child(False)
-                        sleep(0.25)
-                        GLib.idle_add(key_widget[0].self_remove, None)
-                        sleep(0.25)
-                        GLib.idle_add(self.on_key_removed, None)
-                    except:
-                        import traceback
-                        print(traceback.format_exc())
-                        pass
-                if len(self.key_grid.get_children()) == 0:
-                    self.standby_revealer.set_reveal_child(True)
-                self.key_release_revealer.set_reveal_child(False)
-                self.key_press_revealer.set_reveal_child(False)
+            sleep(self.app.gio_settings.get_int("display-timeout")/1000)
+
+            key_widget = [child for child in self.key_grid.get_children() if (hasattr(child, 'id') and child.id == id)]
+            if key_widget:
+                try:
+                    sleep(0.25)
+                    key_widget[0].set_reveal_child(False)
+                    sleep(0.25)
+                    GLib.idle_add(key_widget[0].self_remove, None)
+                    sleep(0.25)
+                    GLib.idle_add(self.on_key_removed, None)
+                except:
+                    import traceback
+                    print(traceback.format_exc())
+                    pass
+            if len(self.key_grid.get_children()) == 0:
+                self.standby_revealer.set_reveal_child(True)
+            # self.key_release_revealer.set_reveal_child(False)
+            # self.key_press_revealer.set_reveal_child(False)
 
         queue()
 
