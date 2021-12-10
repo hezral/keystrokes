@@ -391,7 +391,9 @@ class Settings(Gtk.Grid):
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
         self.screen_icon.props.height_request = 140
         self.screen_icon.props.width_request = 200
+        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
+        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
 
         northwest = Gtk.EventBox()
         northwest.props.name = "NORTH_WEST"
@@ -502,8 +504,8 @@ class Settings(Gtk.Grid):
         for child in self.screen_icon.get_children():
             child.get_child().get_style_context().remove_class("position-selected")
         eventbox.get_child().get_style_context().add_class("position-selected")
-        self.app.gio_settings.set_string("screen-position", eventbox.props.name)
-        self.app.main_window.reposition(eventbox.props.name)
+        self.app.gio_settings.set_int("screen-position", int(eventbox.props.name))
+        self.app.main_window.reposition()
 
     def on_screen_position_hover(self, eventbox, eventcrossing):
         if eventcrossing.type.value_name == "GDK_ENTER_NOTIFY":
