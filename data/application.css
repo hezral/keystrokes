@@ -7,6 +7,11 @@ headerbar#main button {
     color: white;
 }
 
+headerbar#main {
+    background-image: none;
+    border-color: transparent;
+}
+
 window#main, headerbar#main {
     box-shadow: none;
     border-radius: 6px;
