@@ -32,10 +32,8 @@ class Application(Gtk.Application):
 
     def __init__(self):
         super().__init__(application_id=self.app_id,
-                         flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
+                         flags=Gio.ApplicationFlags.FLAGS_NONE)
         
-        self.add_main_option("test", ord("t"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Command line test", None)
-
         self.window_manager = ActiveWindowManager(gtk_application=self)
     
         prefers_color_scheme = self.granite_settings.get_prefers_color_scheme()
@@ -56,6 +54,19 @@ class Application(Gtk.Application):
         self.icon_theme.prepend_search_path("/var/lib/flatpak/exports/share/icons")
         self.icon_theme.prepend_search_path(os.path.join(GLib.get_home_dir(), ".local/share/flatpak/exports/share/icons"))
         self.icon_theme.prepend_search_path(os.path.join(os.path.dirname(__file__), "data", "icons"))
+
+    def do_command_line(self, command_line):
+        options = command_line.get_options_dict()
+        # convert GVariantDict -> GVariant -> dict
+        options = options.end().unpack()
+
+        if "test" in options:
+            # This is printed on the main instance
+            print("Test argument recieved: %s" % options["test"])
+
+        self.activate()
+        return 0
+            
 
     def do_activate(self):
         if not self.main_window:
