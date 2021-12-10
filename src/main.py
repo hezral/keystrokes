@@ -32,8 +32,10 @@ class Application(Gtk.Application):
 
     def __init__(self):
         super().__init__(application_id=self.app_id,
-                         flags=Gio.ApplicationFlags.FLAGS_NONE)
+                         flags=Gio.ApplicationFlags.HANDLES_COMMAND_LINE)
         
+        self.add_main_option("test", ord("t"), GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Command line test", None)
+
         self.window_manager = ActiveWindowManager(gtk_application=self)
     
         prefers_color_scheme = self.granite_settings.get_prefers_color_scheme()
