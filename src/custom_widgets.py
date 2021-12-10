@@ -391,9 +391,7 @@ class Settings(Gtk.Grid):
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
         self.screen_icon.props.height_request = 140
         self.screen_icon.props.width_request = 200
-        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
         self.screen_icon.get_style_context().add_class("screen-display")
-        self.screen_icon.get_style_context().add_class(Granite.STYLE_CLASS_ROUNDED)
 
         northwest = Gtk.EventBox()
         northwest.props.name = "NORTH_WEST"

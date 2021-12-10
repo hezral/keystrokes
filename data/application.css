@@ -139,9 +139,16 @@ label#standby {
     background-image:
         linear-gradient(
             to bottom,
-            alpha (@accent_color_500, 0.1),
-            alpha (@accent_color_500, 0.1)
+            rgba(0,0,0,0.1),
+            rgba(0,0,0,0.1)
         );
+    border-radius: 3px;
+    border-color: rgba(0,0,0,0.01);
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.15),
+        0 2px 5px  rgba(0,0,0,0.16),
+        0 2px 5px  rgba(0,0,0,0.23),
+        0 14px 28px  rgba(0,0,0,0);
     /* background-repeat: no-repeat;
     background-position: -32px -32px, -32px calc(100% + 32px), calc(100% + 32px) -32px, calc(100% + 32px) calc(100% + 32px), 0;
     background-size: 64px 64px, 64px 64px, 64px 64px, 64px 64px, cover; */
