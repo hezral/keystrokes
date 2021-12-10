@@ -393,18 +393,23 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def add_key(self, data):
         key, key_type, shape_type, id = data
         index = len(self.key_grid.get_children())
-    
+
         if index == 0:
             if self.app.gio_settings.get_value("auto-position"):
                 self.reposition()
 
+        key_widget = self.key_grid.get_child_at(index, 0)
+        if key_widget is not None:
+            index = index + 1
+
         if shape_type == "square":
             if key_type == "mouse":
-                self.key_grid.attach(ContainerRevealer(key, MouseContainer(key, key_type), id), index, 0, 1, 1)
+                self.key_grid.add(ContainerRevealer(key, MouseContainer(key, key_type), id))
             else:
-                self.key_grid.attach(ContainerRevealer(key, KeySquareContainer(key, key_type), id), index, 0, 1, 1)
+                self.key_grid.add(ContainerRevealer(key, KeySquareContainer(key, key_type), id))
+                
         else:
-            self.key_grid.attach(ContainerRevealer(key, KeyRectangleContainer(key, key_type), id), index, 0, 1, 1)
+            self.key_grid.add(ContainerRevealer(key, KeyRectangleContainer(key, key_type), id))
 
         self.key_grid.show_all()
 
@@ -412,26 +417,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             if isinstance(child, Gtk.Revealer):
                 child.set_reveal_child(True)
 
-    def remove_key(self, data):
-        if data is None:
-            if len(self.key_grid.get_children()) != 0:
-                self.key_grid.get_children()[-1].set_reveal_child(False)
-            # GLib.timeout_add(self.key_remove_delay, self.key_grid.remove_column, 0)
-            # sleep(0.1)
-            self.key_grid.remove_column(0)
-        else:
-            key_grid_child = data
-            key_grid_child.destroy()
-        
-        # GLib.timeout_add(self.key_remove_delay, self.on_key_removed, None)
-        print("{0}, triggered at line: {1}, data: {2}, child_count: {3}".format(datetime.now(), getframeinfo(currentframe()).lineno, "remove_key", len(self.key_grid.get_children())))
-
-    def get_last_key_grid_child(self, key):
-        if len(self.key_grid.get_children()) != 0:
-            last_key_grid_child = [child for child in self.key_grid.get_children() if child.props.name == key]
-            if len(last_key_grid_child) == 1:
-                return last_key_grid_child[0]
-    
     def add_to_display(self, key=None, key_type=None, shape_type=None, event=None):
 
         id = uuid4().hex
@@ -452,6 +437,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             sleep(self.app.gio_settings.get_int("display-timeout")/1000)
 
             key_widget = [child for child in self.key_grid.get_children() if (hasattr(child, 'id') and child.id == id)]
+
             if key_widget:
                 try:
                     sleep(0.25)
