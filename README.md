@@ -37,7 +37,7 @@ Ensure you have these dependencies installed
 Download the updated source [here](https://github.com/hezral/keystrokes/archive/master.zip), or use git:
 ```bash
 git clone https://github.com/hezral/keystrokes.git
-cd clips
+cd keystrokes
 meson build --prefix=/usr
 cd build
 ninja build
