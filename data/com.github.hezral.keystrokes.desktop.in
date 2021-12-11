@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=Keystrokes
+Comment=Simple on-screen keystroke and mouse display
 Exec=keystrokes
 Icon=com.github.hezral.keystrokes
 Terminal=false
