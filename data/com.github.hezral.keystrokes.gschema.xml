@@ -16,6 +16,16 @@
             <summary>Revert to initial position</summary>
             <description>Revert to initial position</description>
         </key>
+        <key type="b" name="fixed-position">
+            <default>true</default>
+            <summary>Revert to initial fixed position</summary>
+            <description>Revert to initial fixed position</description>
+        </key>
+        <key type="b" name="last-position">
+            <default>false</default>
+            <summary>Revert to initial last position</summary>
+            <description>Revert to initial last position</description>
+        </key>
         <key type="b" name="detect-words">
             <default>true</default>
             <summary>Detects words and group it to display</summary>
@@ -51,6 +61,11 @@
             <summary>Monitor mouse scrolls</summary>
             <description>Monitor mouse scrolls</description>
         </key>
+        <key type="b" name="single-key-mode">
+            <default>false</default>
+            <summary>Only show one key at a time</summary>
+            <description>Only show one key at a time</description>
+        </key>
         <key type="i" name="display-timeout">
             <default>1000</default>
             <summary>How long to until key is removed</summary>
@@ -60,6 +75,16 @@
             <default>75</default>
             <summary>Customize window transparency</summary>
             <description>Customize window transparency</description>
+        </key>
+        <key type="s" name="display-color">
+            <default>"000000"</default>
+            <summary>display window color</summary>
+            <description>Customize display window color</description>
+        </key>
+        <key type="s" name="current-position">
+            <default>"upper-left"</default>
+            <summary>current position</summary>
+            <description>current position of main window</description>
         </key>
         <key name="pos-x" type="i">
             <default>0</default>

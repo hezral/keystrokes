@@ -14,7 +14,7 @@ headerbar#main {
 
 window#main, headerbar#main {
     box-shadow: none;
-    border-radius: 6px;
+    border-radius: 16px;
 }
 
 headerbar#main.titlebar {
@@ -60,9 +60,9 @@ grid#key-container {
     border-bottom-style: solid;
     border-top-color: white;
     border-bottom-color: gray;
-    border-bottom-width: 4px;
+    border-bottom-width: 5px;
     border-top-width: 2px;
-    border-radius: 5px;
+    border-radius: 6px;
     box-shadow:
         0 0 0 1px rgba(0,0,0,0.1),
         0 2px 3px  rgba(0,0,0,0.2),
@@ -101,12 +101,22 @@ grid#mouse-container {
 }
 
 label#single-key {
-    font-size: 250%;
+    font-size: 200%;
 }
 
 label#mod-key {
-    font-size: 180%;
+    font-size: 150%;
 }
+
+label#symbol {
+    font-size: 150%;
+}
+
+
+label#symbol-large {
+    font-size: 250%;
+}
+
 
 label#on-state {
     font-weight: bolder;
@@ -123,15 +133,10 @@ label#default-state {
 
 label#movement {
     font-weight: bold;
+    text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-label#symbol {
-    font-size: 200%;
-}
 
-label#symbol-large {
-    font-size: 300%;
-}
 
 label#standby {
     font-size: 300%;

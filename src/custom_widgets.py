@@ -5,7 +5,7 @@ from Xlib.protocol import event
 import gi
 gi.require_version('Gtk', '3.0')
 gi.require_version('Granite', '1.0')
-from gi.repository import Gtk, Granite, Gdk, Pango, Gio, GLib
+from gi.repository import GObject, Gtk, Granite, Gdk, Pango, Gio, GLib
 
 class CustomDialog(Gtk.Window):
     def __init__(self, dialog_parent_widget, dialog_title, dialog_content_widget, action_button_label, action_button_name, action_callback, action_type, size=None, data=None, *args, **kwargs):
@@ -104,6 +104,7 @@ class ContainerRevealer(Gtk.Revealer):
     def self_remove(self, *args):
         self.destroy()
 
+
 class KeySquareContainer(Gtk.Grid):
     def __init__(self, keyname, key_type, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -112,7 +113,7 @@ class KeySquareContainer(Gtk.Grid):
         self.props.hexpand = True
         # self.props.margin = 5
         self.props.halign = self.props.valign = Gtk.Align.CENTER
-        self.set_size_request(80, 80)
+        self.set_size_request(64, 64)
 
         keymap = Gdk.Keymap().get_for_display(Gdk.Display.get_default())
         if keymap.get_caps_lock_state():
@@ -143,7 +144,14 @@ class KeyRectangleContainer(Gtk.Grid):
         "right": "▷",
         "up": "△",
         "down": "▽ ",
+        "page_up": "△",
+        "page_down": "▽ ",
         "space": "⎵",
+        "esc": "⎋",
+        "break": "⎊",
+        "pause": "⎉",
+        "scroll_lock": "⇳",
+        "print_screen": "⎙",
     }
 
     def __init__(self, keyname, key_type, *args, **kwargs):
@@ -151,12 +159,12 @@ class KeyRectangleContainer(Gtk.Grid):
 
         if keyname[0] == "f" and isinstance(int(keyname[1]),int):
             keyname = keyname.upper()
-        
+
         self.props.name = "key-container"
         # self.props.margin = 5
         self.props.hexpand = True
         self.props.halign = self.props.valign = Gtk.Align.CENTER
-        self.set_size_request(120, 80)
+        self.set_size_request(96, 64)
 
         self.label = Gtk.Label(keyname.replace("_"," "))
         self.label.props.name = "mod-key"
@@ -179,7 +187,7 @@ class KeyRectangleContainer(Gtk.Grid):
 
         if keyname == "cmd":
             self.label.props.label = ""
-            self.set_size_request(80, 80)
+            self.set_size_request(64, 64)
 
         self.attach(self.label, 0, 0, 1, 1)
 
@@ -356,6 +364,24 @@ class SubSettings(Gtk.Grid):
             self.checkbutton.props.name = name
             self.attach(self.checkbutton, 0, 0, 1, 2)
 
+        if type == "comboboxtext":
+            self.combobox = Gtk.ComboBoxText()
+            self.combobox.props.name = name
+            self.combobox.props.popup_fixed_width = False
+            for param in params:
+                self.combobox.append(id=param, text=param)
+            self.attach(self.combobox, 1, 0, 1, 2)
+
+        if type == "radiobutton":
+            self.radiobutton1 = Gtk.RadioButton().new_with_label(group=None, label=params[0])
+            self.radiobutton2 = Gtk.RadioButton().new_with_label(group=None, label=params[1])
+            self.radiobutton3 = Gtk.RadioButton().new_with_label(group=None, label="Off")
+            self.radiobutton2.join_group(self.radiobutton1)
+            self.radiobutton3.join_group(self.radiobutton1)
+            self.attach(self.radiobutton1, 1, 0, 1, 2)
+            self.attach(self.radiobutton2, 2, 0, 1, 2)
+            self.attach(self.radiobutton3, 3, 0, 1, 2)
+
         # separator ---
         if separator:
             row_separator = Gtk.Separator()
@@ -400,6 +426,7 @@ class Settings(Gtk.Grid):
 
         self.screen_icon = Gtk.Grid()
         self.screen_icon.props.expand = True
+        self.screen_icon.props.margin = 8
         self.screen_icon.props.halign = self.screen_icon.props.valign = Gtk.Align.CENTER
         self.screen_icon.props.height_request = 140
         self.screen_icon.props.width_request = 200
@@ -451,10 +478,6 @@ class Settings(Gtk.Grid):
 
         position_label = SubSettings(type=None, name="position-label", label="Screen position", sublabel=None, separator=False, params=None)
 
-        auto_position = SubSettings(type="switch", name="auto-position", label="Auto position", sublabel="Revert to initial position",separator=True)
-        auto_position.switch.connect_after("notify::active", self.on_switch_activated)
-        self.app.gio_settings.bind("auto-position", auto_position.switch, "active", Gio.SettingsBindFlags.DEFAULT)
-
         monitor_label = SubSettings(type=None, name="monitor-label", label="Event monitoring", sublabel=None, separator=False, params=None)
         
         monitor_movements = SubSettings(type="checkbutton", name="monitor-movements", label=None, sublabel=None, separator=False, params=("Movements",))
@@ -505,10 +528,14 @@ class Settings(Gtk.Grid):
         display_transparency_slider = Gtk.Scale().new_with_range(Gtk.Orientation.HORIZONTAL, 0, 100, 1)
         display_transparency_slider.props.draw_value = False
         
+        auto_position = SubSettings(type="switch", name="auto-position", label="Auto position", sublabel="Revert window position", separator=True)
+        self.app.gio_settings.bind("auto-position", auto_position.switch, "active", Gio.SettingsBindFlags.DEFAULT)
+        auto_position.switch.bind_property("active", self.screen_icon, "sensitive", GObject.BindingFlags.DEFAULT)
+        if not auto_position.switch.props.active:
+            self.screen_icon.props.sensitive = False
 
         display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, display_timeout, display_transparency, auto_position, position_label, self.screen_icon))
         self.add(display_behaviour_settings)
-
 
     def on_screen_position_clicked(self, eventbox, eventbutton):
         for child in self.screen_icon.get_children():

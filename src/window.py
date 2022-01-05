@@ -64,8 +64,9 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.key_grid.props.halign = Gtk.Align.FILL
         self.key_grid.props.valign = Gtk.Align.FILL
         self.key_grid.props.margin_top = 10
-        self.key_grid.props.margin_bottom = 0
-        self.key_grid.props.margin_left = self.key_grid.props.margin_right = 15
+        self.key_grid.props.margin_bottom = 10
+        self.key_grid.props.margin_left = 15
+        self.key_grid.props.margin_right = 15
 
         self.key_info_grid = Gtk.Grid()
         self.key_info_grid.props.name = "key-info-grid"
@@ -80,7 +81,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         movement_label.props.name = "movement"
         movement_label.props.expand = True
         movement_label.props.justify = Gtk.Justification.LEFT
-        movement_label.props.halign = Gtk.Align.START
+        movement_label.props.halign = Gtk.Align.END
         movement_label.set_size_request(95, -1)
         self.movement_revealer = Gtk.Revealer()
         self.movement_revealer.add(movement_label)
@@ -90,13 +91,11 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         key_press_image.props.expand = True
         self.key_press_revealer = Gtk.Revealer()
         self.key_press_revealer.add(key_press_image)
-        self.key_info_grid.attach(self.key_press_revealer, 1, 0, 1, 1)
 
         key_release_image = Gtk.Image().new_from_icon_name(icon_name="key-release", size=Gtk.IconSize.DND)
         key_release_image.props.expand = True
         self.key_release_revealer = Gtk.Revealer()
         self.key_release_revealer.add(key_release_image)
-        self.key_info_grid.attach(self.key_release_revealer, 1, 0, 1, 1)
 
         self.active_app_image = Gtk.Image()
         self.active_app_image.props.expand = True
@@ -106,8 +105,8 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.key_display_grid.props.expand = True
         self.key_display_grid.props.halign = Gtk.Align.FILL
         self.key_display_grid.props.valign = Gtk.Align.FILL
-        self.key_display_grid.attach(self.key_grid, 0, 0, 1, 1)
         self.key_display_grid.attach(self.key_info_grid, 0, 1, 1, 1)
+        self.key_display_grid.attach(self.key_grid, 0, 0, 1, 1)
         
         standby_label = Gtk.Label("•••")
         standby_label.props.name = "standby"
@@ -135,10 +134,16 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         self.show_all()
         self.set_resizable(False)
         self.set_keep_above(True)
-        self.set_size_request(280, 230)
+        self.set_size_request(250, 220)
         self.reposition()
         if self.app.window_manager is not None:
             self.app.window_manager._run(callback=self.on_active_window_changed)
+        
+        # screen = self.get_screen()
+        # display = screen.get_display()
+        # display.connect("monitor-added", self.on_n_monitor_changed, "monitor-added")
+        # display.connect("monitor-removed", self.on_n_monitor_changed, "monitor-removed")
+        # n_monitors = display.get_n_monitors()
 
     def setup_ui(self, transparency_value=None):
         if transparency_value is None:
@@ -152,7 +157,8 @@ class KeystrokesWindow(Handy.ApplicationWindow):
             self.stick()
 
         self.connect("button-press-event", self.show_window_controls)
-        self.connect("screen-changed", self.on_screen_changed)
+        # self.connect("screen-changed", self.on_screen_changed)
+        self.connect("configure-event", self.on_configure_event)
 
     def generate_headerbar(self):
         settings_button = Gtk.Button(image=Gtk.Image().new_from_icon_name("settings-symbolic", Gtk.IconSize.SMALL_TOOLBAR))
@@ -202,85 +208,119 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
     def reposition(self, *args):
 
-        gravity = Gdk.Gravity(self.app.gio_settings.get_int("screen-position"))
-
-        window_width, window_height = self.get_size()
-        
-        screen = self.get_screen()
-        screen_width = screen.width()
-        screen_height = screen.height()
-
-        monitor = screen.get_monitor_at_window(self.get_window())
-        work_area = screen.get_monitor_workarea(monitor)
-        
-        monitor = screen.get_primary_monitor()
-        work_area = screen.get_monitor_workarea(monitor)
-
-        work_area_x = work_area.x
-        work_area_y = work_area.y
-        work_area_width = work_area.width
-        work_area_height = work_area.height
-        
-        logging.info("monitor:{0}, screen:{1}, work_area_x_y:{2}, work_area_size:{3}, window_size:{4}, gravity:{5}".format(monitor, (screen_width, screen_height),(work_area_x, work_area_y), (work_area_width, work_area_height), (window_width, window_height), gravity.value_name))
-
-        x = None
-        y = None
-
         # defaults
         a, b, c, d = 0, 1, 1, 2
-        x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, screen_height-window_height
         align = Gtk.Align.END
 
+        # clear key_info_grid
         for i in range(4):
             self.key_info_grid.remove_column(0)
 
-        self.set_position(Gtk.WindowPosition.NONE)
+        if self.app.gio_settings.get_value("auto-position"):
 
-        if gravity.value_name == "GDK_GRAVITY_NORTH_WEST":
-            x, y = (screen_height-work_area_height)-work_area_y, (screen_height-work_area_height)
-            a, b, c, d = 2, 1, 1, 0
-            align = Gtk.Align.START
-        elif gravity.value_name =="GDK_GRAVITY_NORTH":
-            x, y = (screen_width/2)-(window_width/2), (screen_height-work_area_height)
-            align = Gtk.Align.CENTER
-        elif gravity.value_name == "GDK_GRAVITY_NORTH_EAST":
-            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, (screen_height-work_area_height)
-            align = Gtk.Align.END
-        elif gravity.value_name == "GDK_GRAVITY_EAST":
-            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, (screen_height/2)-(window_height/2)
-            align = Gtk.Align.END
-        elif gravity.value_name == "GDK_GRAVITY_SOUTH_EAST":
-            x, y = screen_width-window_width-(screen_height-work_area_height)+work_area_y, screen_height-window_height
-            align = Gtk.Align.END
-        elif gravity.value_name == "GDK_GRAVITY_SOUTH":
-            x, y = (screen_width/2)-(window_width/2), screen_height-window_height
-            align = Gtk.Align.CENTER
-        elif gravity.value_name == "GDK_GRAVITY_SOUTH_WEST":
-            x, y = (screen_height-work_area_height)-work_area_y, screen_height-window_height
-            a, b, c, d = 2, 1, 1, 0
-            align = Gtk.Align.START
-        elif gravity.value_name == "GDK_GRAVITY_WEST":
-            x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_height/2)
-            a, b, c, d = 2, 1, 1, 0
-            align = Gtk.Align.START
-        elif gravity.value_name == "GDK_GRAVITY_CENTER":
-            # x, y = (screen_height-work_area_height)-work_area_y, (screen_height/2)-(window_height/2)
-            align = Gtk.Align.CENTER
+            gravity = Gdk.Gravity(self.app.gio_settings.get_int("screen-position"))
+
+            window_width, window_height = self.get_size()
+            root_x, root_y = self.get_position()
+            
+            screen = self.get_screen()
+            screen_width = screen.width()
+            screen_height = screen.height()
+            logging.info("screen:{0}".format((screen_width, screen_height)))
+
+            display = screen.get_display()
+            n_monitors = display.get_n_monitors()
+            logging.info("n_monitors:{0}".format(n_monitors))
+
+            monitor = screen.get_monitor_at_window(self.get_window())
+            logging.info("get_monitor_at_window:{0}".format(monitor))
+            
+            monitor_geometry = screen.get_monitor_geometry(monitor)
+            logging.info("get_monitor_at_window:{0}".format((monitor_geometry.x, monitor_geometry.y, monitor_geometry.width, monitor_geometry.height)))
+
+            work_area = screen.get_monitor_workarea(monitor)
+            logging.info("work_area:{0}".format((work_area.x, work_area.y, work_area.width, work_area.height)))
+
+            offset_x = monitor_geometry.height - work_area.height
+            offset_y = (screen_height-work_area.height)-work_area.y
+            logging.info("offset:{0}".format((offset_x, offset_y)))
+
+            monitor = screen.get_primary_monitor()
+            logging.info("get_primary_monitor:{0}".format(monitor))
+
+            monitor_geometry = screen.get_monitor_geometry(monitor)
+            logging.info("get_monitor_at_window:{0}".format((monitor_geometry.x, monitor_geometry.y, monitor_geometry.width, monitor_geometry.height)))
+
+            work_area = screen.get_monitor_workarea(monitor)
+            logging.info("work_area:{0}".format((work_area.x, work_area.y, work_area.width, work_area.height)))
+
+            offset_y = monitor_geometry.height - work_area.height
+            offset_x = (screen_height-work_area.height)-work_area.y
+            logging.info("offset:{0}".format((offset_x, offset_y)))
+
+            safe_area_width = screen_width - (screen_height - work_area.height - work_area.y) * 2
+            if window_width >= safe_area_width:
+                # logging.info("safe_area:{0}".format(safe_area_width))
+                GLib.idle_add(self.key_grid.get_children()[0].self_remove, None)
+
+            # defaults
+            # x, y = screen_width-window_width-(screen_height-work_area.height)+work_area.y, screen_height-window_height
+
+            self.set_position(Gtk.WindowPosition.NONE)
+
+            if gravity.value_name == "GDK_GRAVITY_NORTH_WEST":
+                x, y = (screen_height-work_area.height)-work_area.y, (screen_height-work_area.height)
+                a, b, c, d = 2, 1, 1, 0
+                align = Gtk.Align.START
+            elif gravity.value_name =="GDK_GRAVITY_NORTH":
+                x, y = (screen_width/2)-(window_width/2), (screen_height-work_area.height)
+                align = Gtk.Align.CENTER
+            elif gravity.value_name == "GDK_GRAVITY_NORTH_EAST":
+                x, y = screen_width-window_width-(screen_height-work_area.height)+work_area.y, (screen_height-work_area.height)
+                align = Gtk.Align.END
+            elif gravity.value_name == "GDK_GRAVITY_EAST":
+                x, y = screen_width-window_width-(screen_height-work_area.height)+work_area.y, (screen_height/2)-(window_height/2)
+                align = Gtk.Align.END
+            elif gravity.value_name == "GDK_GRAVITY_SOUTH_EAST":
+                x, y = screen_width-window_width-(screen_height-work_area.height)+work_area.y, screen_height-window_height
+                align = Gtk.Align.END
+            elif gravity.value_name == "GDK_GRAVITY_SOUTH":
+                x, y = (screen_width/2)-(window_width/2), screen_height-window_height
+                align = Gtk.Align.CENTER
+            elif gravity.value_name == "GDK_GRAVITY_SOUTH_WEST":
+                x, y = (screen_height-work_area.height)-work_area.y, screen_height-window_height
+                a, b, c, d = 2, 1, 1, 0
+                align = Gtk.Align.START
+            elif gravity.value_name == "GDK_GRAVITY_WEST":
+                x, y = (screen_height-work_area.height)-work_area.y, (screen_height/2)-(window_height/2)
+                a, b, c, d = 2, 1, 1, 0
+                align = Gtk.Align.START
+            elif gravity.value_name == "GDK_GRAVITY_CENTER":
+                x, y = (screen_width/2)-(window_width/2), (screen_height/2)-(window_height/2)
+                align = Gtk.Align.CENTER
+            else:
+                pass
+
+            self.move(x, y)
+            # gdk_window.move(x, y)
+
         else:
-            # self.set_position(Gtk.WindowPosition.CENTER_ALWAYS)
-            align = Gtk.Align.CENTER
-
-        if x and y:
-            self.app.gio_settings.set_int("pos-x", x)
-            self.app.gio_settings.set_int("pos-y", y)
+            if self.app.gio_settings.get_string("current-position") in ["upper-left", "lower-left"] :
+                a, b, c, d = 2, 1, 1, 0
+                align = Gtk.Align.START
+                gravity = Gdk.Gravity.NORTH_WEST
+            elif self.app.gio_settings.get_string("current-position") in ["upper-right", "lower-right"] :
+                a, b, c, d = 0, 1, 1, 2
+                align = Gtk.Align.END
+                gravity = Gdk.Gravity.NORTH_EAST
 
         self.set_gravity(gravity)
-        self.move(self.app.gio_settings.get_int("pos-x"), self.app.gio_settings.get_int("pos-y"))
         self.key_info_grid.props.halign = align
         self.key_info_grid.attach(self.movement_revealer, a, 0, 1, 1)
         self.key_info_grid.attach(self.key_press_revealer, b, 0, 1, 1)
         self.key_info_grid.attach(self.key_release_revealer, c, 0, 1, 1)
         self.key_info_grid.attach(self.active_app_image, d, 0, 1, 1)
+
 
     def show_window_controls(self, *args):
         self.header.props.show_close_button = True
@@ -288,42 +328,80 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         GLib.timeout_add(5000, self.header.set_show_close_button, False)
         GLib.timeout_add(5000, self.settings_revealer.set_reveal_child, False)
 
+    def on_n_monitor_changed(self, display, monitor, event_type):
+        logging.info((event_type, monitor))
+
+    def on_configure_event(self, widget, event):
+        position = ""
+
+        root_x, root_y = self.get_position()
+
+        screen = self.get_screen()
+
+        display = screen.get_display()
+        n_monitors = display.get_n_monitors()
+
+        monitor = screen.get_monitor_at_window(self.get_window())
+        monitor = screen.get_primary_monitor()
+
+        monitor_geometry = screen.get_monitor_geometry(monitor)
+
+        work_area = screen.get_monitor_workarea(monitor)
+
+        if root_x >= 0 and root_x <= monitor_geometry.width/2 and root_y >= 0 and root_y <= monitor_geometry.height/2:
+            position = "upper-left"
+        elif root_x >= monitor_geometry.width/2 and root_y >= 0 and root_y <= monitor_geometry.height/2:
+            position = "upper-right"
+        elif root_x >= 0 and root_x <= monitor_geometry.width/2 and root_y >= monitor_geometry.height/2:
+            position = "lower-left"
+        elif root_x >= monitor_geometry.width/2 and root_y >= monitor_geometry.height/2:
+            position = "lower-right"
+
+        if position not in self.app.gio_settings.get_string("current-position"):
+            self.app.gio_settings.set_string("current-position", position)
+            self.reposition()
+
+    def on_active_window_changed(self, window_id):
+        app_data = self.app.utils.get_app_by_window_id(window_id)
+        if app_data is not None:
+            if len(app_data) != 0:
+                self.active_app = app_data[0]
+                self.active_app_image.set_from_icon_name(icon_name=app_data[1], size=Gtk.IconSize.DND)
+                self.active_app_image.set_pixel_size(32)
+
     def on_settings_clicked(self, button):
         self.generate_settings_dialog()
 
     def on_screen_changed(self, widget, previous_screen):
         logging.info(previous_screen)
         # self.reposition()
-
-    def on_key_removed(self, *args):
-        if self.app.gio_settings.get_value("auto-position"):
-            self.reposition()
-        # else:
-        #     self.set_position(Gtk.WindowPosition.NONE)
-        
+      
     def on_event(self):
+        GLib.idle_add(self.reposition, None)
         if self.app.app_id.split(".")[-1].lower() in self.active_app.lower():
             return False
         else:
             return True
-
-    def on_active_window_changed(self, window_id):
-        app_data = self.app.utils.get_app_by_window_id(window_id)
-        if len(app_data) != 0:
-            self.active_app = app_data[0]
-            self.active_app_image.set_from_icon_name(icon_name=app_data[1], size=Gtk.IconSize.DND)
-            self.active_app_image.set_pixel_size(32)
         
     def on_key_event(self, key, event):
         if self.on_event():
             self.key_press_timestamp = datetime.now()
             key_type = "keyboard"
+
             try:
-                key = key.char
+                _key = key.char
                 shape_type = "square"
             except AttributeError:
-                key = key.name
+                _key = key.name
                 shape_type = "rectangle"
+            else:
+            # print(Gdk.keyval_name(key.vk))
+                if key.vk:
+                    if key.vk == 65032: #temporary workaround for issue https://github.com/moses-palmer/pynput/issues/215
+                        _key = "shift"
+                        shape_type = "rectangle"
+            finally:
+                key = _key
 
             if key == self.last_key:
                 self.repeat_key_counter += 1
@@ -335,14 +413,10 @@ class KeystrokesWindow(Handy.ApplicationWindow):
     def on_key_press(self, key):
         if self.app.gio_settings.get_value("monitor-key-press"):
             self.on_key_event(key, "key-press")
-            # self.key_press_revealer.set_reveal_child(True)
-            # self.key_release_revealer.set_reveal_child(False)
 
     def on_key_release(self, key):
         if self.app.gio_settings.get_value("monitor-key-release"):
             self.on_key_event(key, "key-release")
-            # self.key_release_revealer.set_reveal_child(True)
-            # self.key_press_revealer.set_reveal_child(False)
 
     def on_mouse_move(self, x, y):
         def update_movement(data):
@@ -395,8 +469,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
         index = len(self.key_grid.get_children())
 
         if index == 0:
-            if self.app.gio_settings.get_value("auto-position"):
-                self.reposition()
+            self.reposition()
 
         key_widget = self.key_grid.get_child_at(index, 0)
         if key_widget is not None:
@@ -445,7 +518,7 @@ class KeystrokesWindow(Handy.ApplicationWindow):
                     sleep(0.25)
                     GLib.idle_add(key_widget[0].self_remove, None)
                     sleep(0.25)
-                    GLib.idle_add(self.on_key_removed, None)
+                    GLib.idle_add(self.on_removed, None)
                 except:
                     import traceback
                     print(traceback.format_exc())
@@ -457,3 +530,6 @@ class KeystrokesWindow(Handy.ApplicationWindow):
 
         queue()
 
+    def on_removed(self, *args):
+        self.reposition()
+  
