@@ -7,6 +7,11 @@ gi.require_version('Gtk', '3.0')
 gi.require_version('Granite', '1.0')
 from gi.repository import GObject, Gtk, Granite, Gdk, Pango, Gio, GLib
 
+import logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(asctime)s, %(funcName)s:%(lineno)d: %(message)s")
+
+from time import sleep
+
 class CustomDialog(Gtk.Window):
     def __init__(self, dialog_parent_widget, dialog_title, dialog_content_widget, action_button_label, action_button_name, action_callback, action_type, size=None, data=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -78,35 +83,121 @@ class CustomDialog(Gtk.Window):
         self.connect("key-press-event", on_key_press)
 
 
-class ContainerRevealer(Gtk.Revealer):
-    def __init__(self, keyname, widget, id=None, *args, **kwargs):
+class KeyDisplayContainer(Gtk.Grid):
+    def __init__(self, name, active, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.props.name = keyname
+        self.active = active
+        self.active_app = name
+
+        self.key_grid = Gtk.Grid()
+        self.key_grid.props.name = "key-grid"
+        self.key_grid.props.column_spacing = 15
+        self.key_grid.props.expand = True
+        self.key_grid.props.halign = Gtk.Align.END
+        self.key_grid.props.valign = Gtk.Align.FILL
+
+        self.key_grid_revealer = Gtk.Revealer()
+        self.key_grid_revealer.add(self.key_grid)
+
+        self.key_info_grid = Gtk.Grid()
+        self.key_info_grid.props.name = "key-info-grid"
+        self.key_info_grid.props.column_spacing = 15
+        self.key_info_grid.props.expand = True
+        self.key_info_grid.props.halign = Gtk.Align.END
+        self.key_info_grid.props.valign = Gtk.Align.FILL
+
+        self.active_app_image = Gtk.Image()
+        self.active_app_image.props.expand = True
+        self.active_app_revealer = Gtk.Revealer()
+        self.active_app_revealer.add(self.active_app_image)
+        self.key_info_grid.attach(self.active_app_revealer, 0, 0, 1, 1)
+
+        self.props.name = name
+        self.props.expand = True
+        self.props.halign = Gtk.Align.END
+        self.props.valign = Gtk.Align.FILL
+        self.props.column_spacing = 15
+        self.props.margin_top = 10
+        self.props.margin_bottom = 10
+        self.props.margin_left = 15
+        self.props.margin_right = 15
+        self.attach(self.key_grid_revealer, 0, 0, 1, 1)
+        self.attach(self.key_info_grid, 1, 0, 1, 1)
+
+    def self_remove(self, *args):
+        # logging.info(self.props.name)
+        self.destroy()
+
+    def generate_key_grid_child(self):
+        key_grid_child = Gtk.Grid()
+        key_grid_child.props.name = "key-grid"
+        key_grid_child.props.column_spacing = 15
+        key_grid_child.props.expand = True
+        key_grid_child.props.halign = Gtk.Align.END
+        key_grid_child.props.valign = Gtk.Align.FILL
+        
+        self.key_grid.attach(0, 0, 1, 1)
+        return key_grid_child
+
+
+class ContainerRevealer(Gtk.Revealer):
+    def __init__(self, keyname, widget, id=None, event=None, active_app=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.name = keyname
+        self.remove_id = None
+        self.repeat_key_counter = 1
+        self.repeat_key = False
+        self.id = id
+        self.event = event
+        self.active_app = active_app
+
+        self.props.name = "container"
         self.props.transition_duration = 500
         self.props.transition_type = Gtk.RevealerTransitionType.CROSSFADE
-
-        self.repeat_key_counter = 0
-        self.id = id
 
         self.counter = Gtk.Label(self.repeat_key_counter)
         self.counter.props.name = "repeat-counter"
         self.counter.props.expand = False
-        self.counter.props.margin_top = 20
-        self.counter.props.halign = Gtk.Align.START
+        # self.counter.props.margin_top = 20
+        self.counter.props.halign = Gtk.Align.END
         self.counter.props.valign = Gtk.Align.START
         self.counter.get_style_context().add_class(Granite.STYLE_CLASS_CARD)
+        self.counter_revealer = Gtk.Revealer()
+        self.counter_revealer.add(self.counter)
 
+        # key_press_image = Gtk.Image().new_from_icon_name(icon_name="key-press", size=Gtk.IconSize.DND)
+        # key_press_image.props.expand = True
+        # key_press_emblem = Gtk.Grid()
+        # key_press_emblem.props.name = "emblem"
+        # key_press_emblem.props.valign = Gtk.Align.START
+        # key_press_emblem.props.halign = Gtk.Align.END
+        # key_press_emblem.add(key_press_image)
+        # self.key_press_revealer = Gtk.Revealer()
+        # self.key_press_revealer.add(key_press_emblem)
+        # self.key_press_revealer.set_reveal_child(True)
+
+        # key_release_image = Gtk.Image().new_from_icon_name(icon_name="key-release", size=Gtk.IconSize.DND)
+        # key_release_image.props.expand = True
+        # self.key_release_revealer = Gtk.Revealer()
+        # self.key_release_revealer.add(key_release_image)
+        
         self.overlay = Gtk.Overlay()
         self.overlay.add(widget)
+        self.overlay.add_overlay(self.counter_revealer)
+        # self.overlay.add_overlay(self.key_press_revealer)
         self.add(self.overlay)
 
+        # self.remove_id = GLib.idle_add(self.self_remove, None)
+
     def self_remove(self, *args):
+        # logging.info("{}:{}".format(self.name, self.id))
         self.destroy()
 
 
 class KeySquareContainer(Gtk.Grid):
-    def __init__(self, keyname, key_type, *args, **kwargs):
+    def __init__(self, keyname, key_type, event=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.props.name = "key-container"
@@ -123,6 +214,7 @@ class KeySquareContainer(Gtk.Grid):
         self.label.props.expand = True
         self.label.props.halign = self.label.props.valign = Gtk.Align.CENTER
         self.attach(self.label, 0, 0, 1, 1)
+        self.get_style_context().add_class(event)
 
 
 class KeyRectangleContainer(Gtk.Grid):
@@ -154,7 +246,7 @@ class KeyRectangleContainer(Gtk.Grid):
         "print_screen": "⎙",
     }
 
-    def __init__(self, keyname, key_type, *args, **kwargs):
+    def __init__(self, keyname, key_type, event=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if keyname[0] == "f" and isinstance(int(keyname[1]),int):
@@ -190,6 +282,7 @@ class KeyRectangleContainer(Gtk.Grid):
             self.set_size_request(64, 64)
 
         self.attach(self.label, 0, 0, 1, 1)
+        self.get_style_context().add_class(event)
 
     def generate_capsnumlock_symbol(self, keyname):
         on_state = Gtk.Label("°")
@@ -240,14 +333,14 @@ class KeyRectangleContainer(Gtk.Grid):
 
 
 class MouseContainer(Gtk.Grid):
-    def __init__(self, keyname, key_type, *args, **kwargs):
+    def __init__(self, keyname, key_type, event=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.props.name = "mouse-container"
         self.props.hexpand = True
         # self.props.margin = 5
         self.props.halign = self.props.valign = Gtk.Align.CENTER
-        self.set_size_request(50, 80)
+        self.set_size_request(40, 64)
 
         if key_type == "mouse":
             if keyname == "left":
@@ -262,7 +355,7 @@ class MouseContainer(Gtk.Grid):
                 self.key_image = Gtk.Image().new_from_icon_name("mouse-scrollleft-symbolic", Gtk.IconSize.DND)
             elif keyname == "scrollright":
                 self.key_image = Gtk.Image().new_from_icon_name("mouse-scrollright-symbolic", Gtk.IconSize.DND)
-            self.key_image.set_pixel_size(56)
+            self.key_image.set_pixel_size(48)
             self.key_image.props.name = "single-key"
             self.key_image.props.expand = True
             self.key_image.props.halign = self.key_image.props.valign = Gtk.Align.CENTER
@@ -495,9 +588,9 @@ class Settings(Gtk.Grid):
         monitor_key_release = SubSettings(type="checkbutton", name="monitor-key-release", label=None, sublabel=None, separator=False, params=("Key Release",))
         self.app.gio_settings.bind("monitor-key-release", monitor_key_release.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
-        monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Repeats",))
+        monitor_repeatkeys = SubSettings(type="checkbutton", name="monitor-repeatkeys", label=None, sublabel=None, separator=False, params=("Key Repeats",))
         monitor_repeatkeys.props.has_tooltip = True
-        monitor_repeatkeys.props.tooltip_text = "Experimental, may cause app freezes/crashes"
+        # monitor_repeatkeys.props.tooltip_text = "Experimental, may cause app freezes/crashes"
         self.app.gio_settings.bind("monitor-repeatkeys", monitor_repeatkeys.checkbutton, "active", Gio.SettingsBindFlags.DEFAULT)
 
         monitor_separator = SubSettings(type=None, name="dummy-setting", label=None, sublabel=None, separator=True, params=None)
@@ -512,15 +605,18 @@ class Settings(Gtk.Grid):
         monitor_grid.attach(monitor_clicks, 2, 0, 1, 1)
         monitor_grid.attach(monitor_key_press, 0, 1, 1, 1)
         monitor_grid.attach(monitor_key_release, 1, 1, 1, 1)
-        # monitor_grid.attach(monitor_repeatkeys, 4, 0, 1, 1)
+        monitor_grid.attach(monitor_repeatkeys, 2, 1, 1, 1)
 
         sticky_mode = SubSettings(type="switch", name="sticky-mode", label="Sticky mode", sublabel="Display on all workspaces",separator=True)
         sticky_mode.switch.connect_after("notify::active", self.on_switch_activated)
         self.app.gio_settings.bind("sticky-mode", sticky_mode.switch, "active", Gio.SettingsBindFlags.DEFAULT)
 
-        display_timeout = SubSettings(type="spinbutton", name="display-timeout", label="Display timeout (ms)", sublabel="How long until key dissapears", separator=True, params=(1000,15000,250))
+        display_timeout = SubSettings(type="spinbutton", name="display-timeout", label="Display timeout (ms)", sublabel="How long until key dissapears", separator=True, params=(500,15000,125))
         self.app.gio_settings.bind("display-timeout", display_timeout.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
-        
+
+        repeat_timeout = SubSettings(type="spinbutton", name="display-timeout", label="Repeat timeout (ms)", sublabel="How long until repeat stops", separator=True, params=(1000,15000,500))
+        self.app.gio_settings.bind("repeat-timeout", display_timeout.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
+
         display_transparency = SubSettings(type="spinbutton", name="display-transparency", label="Display transparency", sublabel="Customize window transparency", separator=True, params=(0,100,1))
         display_transparency.spinbutton.connect("value-changed", self.on_spinbutton_activated)
         self.app.gio_settings.bind("display-transparency", display_transparency.spinbutton, "value", Gio.SettingsBindFlags.DEFAULT)
@@ -534,7 +630,7 @@ class Settings(Gtk.Grid):
         if not auto_position.switch.props.active:
             self.screen_icon.props.sensitive = False
 
-        display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, display_timeout, display_transparency, auto_position, position_label, self.screen_icon))
+        display_behaviour_settings = SettingsGroup(None, (monitor_label, monitor_grid, monitor_separator, sticky_mode, repeat_timeout, display_timeout, display_transparency, auto_position, position_label, self.screen_icon))
         self.add(display_behaviour_settings)
 
     def on_screen_position_clicked(self, eventbox, eventbutton):

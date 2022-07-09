@@ -84,7 +84,7 @@ class ActiveWindowManager():
 
         self.last_seen = {'xid': None, 'title': None}  # type: Dict[str, Any]
 
-    def _run(self, callback):
+    def _run(self, callback=None):
 
         self.callback = callback
 

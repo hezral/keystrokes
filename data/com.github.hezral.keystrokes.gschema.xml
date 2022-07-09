@@ -71,6 +71,11 @@
             <summary>How long to until key is removed</summary>
             <description>How long to until key is removed</description>
         </key>
+        <key type="i" name="repeat-timeout">
+            <default>1000</default>
+            <summary>How long to until repeat stops</summary>
+            <description>How long to until repeat stops</description>
+        </key>
         <key type="i" name="display-transparency">
             <default>75</default>
             <summary>Customize window transparency</summary>

@@ -17,6 +17,10 @@ from . import utils
 
 from datetime import datetime
 
+import logging
+logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(asctime)s, %(funcName)s:%(lineno)d: %(message)s")
+
+
 class Application(Gtk.Application):
 
     app_id = "com.github.hezral.keystrokes"
@@ -86,17 +90,23 @@ class Application(Gtk.Application):
         if self.key_listener is not None:
             self.key_listener.listener.stop()
             self.key_listener = None
-            print(datetime.now(), "key listener stopped")
+            logging.info("key listener stopped")
 
-        self.key_listener = KeyListener(self.main_window.on_key_press, self.main_window.on_key_release)
+        self.key_listener = KeyListener(
+            on_press_callback=self.main_window.on_key_press, 
+            on_release_callback=self.main_window.on_key_release
+        )
 
     def setup_mouse_listener(self, *args):
         if self.mouse_listener is not None:
             self.mouse_listener.listener.stop()
             self.mouse_listener = None
-            print(datetime.now(), "mouse listener stopped")
+            logging.info("mouse listener stopped")
 
         self.mouse_listener = MouseListener(self.main_window.on_mouse_move, self.main_window.on_mouse_click, self.main_window.on_mouse_scroll)
+
+        # if self.gio_settings.get_value("monitor-movements"):
+        #     self.mouse_controller = MouseController()
 
 
 def main(version):

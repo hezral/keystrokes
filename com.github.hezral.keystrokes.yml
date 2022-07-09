@@ -1,12 +1,13 @@
 app-id: com.github.hezral.keystrokes
 runtime: io.elementary.Platform
-runtime-version: '6'
+runtime-version: '7'
 sdk: io.elementary.Sdk
 command: keystrokes
 finish-args:
   - --share=ipc
   - --socket=wayland
   - --socket=fallback-x11
+  - --device=dri
 
   # Gio.AppInfo workaround to get all installed apps based on common .desktop locations
   # read-only access to get installed app and icons based on .desktop files

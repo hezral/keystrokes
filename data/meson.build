@@ -55,6 +55,12 @@ other_icon_sources = [
   join_paths('icons', 'mouse-scrollright-symbolic.svg'),
   join_paths('icons', 'key-press.svg'),
   join_paths('icons', 'key-release.svg'),
+  join_paths('icons', 'movements1.svg'),
+  join_paths('icons', 'movements2.svg'),
+  join_paths('icons', 'movements3.svg'),
+  join_paths('icons', 'movements4.svg'),
+  join_paths('icons', 'movements5.svg'),
+  join_paths('icons', 'movements6.svg'),
 ]
 iconsdir = join_paths(pkgdatadir, project_short_name, 'data', 'icons')
 install_data(other_icon_sources, install_dir: iconsdir)

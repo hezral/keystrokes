@@ -39,17 +39,69 @@ decoration-overlay {box-shadow: 0 0 0 1px rgba(0,0,0,0), 0 13px 16px 4px rgba(0,
     100% { opacity: 1; }	
 }
 
-grid#key-container {
+.pressed {
     font-weight: bolder;
     color: rgb(42,42,42);
     text-shadow: 0px 1px 1px rgba(255, 255, 255, 1);
     background: rgb(198,198,198);
+    background: shade(@theme_bg_color,0.5);
     background: 
         linear-gradient(
             180deg, 
             rgba(198,198,198,1) 0%, 
             rgba(198,198,198,1) 35%, 
             rgba(223,223,223,1) 100%);
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-top-color: white;
+    border-bottom-color: gray;
+    border-bottom-width: 5px;
+    border-top-width: 2px;
+    border-radius: 6px;
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.1),
+        0 2px 3px  rgba(0,0,0,0.2),
+        0 2px 5px  rgba(0,0,0,0.3),
+        0 14px 28px  rgba(0,0,0,0);
+}
+
+.released {
+    font-weight: bolder;
+    color: rgb(42,42,42);
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 1);
+    background: rgb(198,198,198);
+    background: shade(@theme_bg_color,0.5);
+    background: 
+        linear-gradient(
+            180deg, 
+            rgba(198,198,198,1) 0%, 
+            rgba(198,198,198,1) 35%, 
+            rgba(223,223,223,1) 100%);
+    border-top-style: solid;
+    border-bottom-style: solid;
+    border-top-color: white;
+    border-bottom-color: gray;
+    border-bottom-width: 5px;
+    border-top-width: 2px;
+    border-radius: 6px;
+    box-shadow:
+        0 0 0 1px rgba(0,0,0,0.1),
+        0 2px 3px  rgba(0,0,0,0.2),
+        0 2px 5px  rgba(0,0,0,0.3),
+        0 14px 28px  rgba(0,0,0,0);
+}
+
+grid#key-container {
+    font-weight: bolder;
+    color: rgb(42,42,42);
+    text-shadow: 0px 1px 1px rgba(255, 255, 255, 1);
+/* /    background: rgb(198,198,198); */
+    /* background: 
+        linear-gradient(
+            180deg, 
+            rgba(198,198,198,1) 0%, 
+            rgba(198,198,198,1) 35%, 
+            rgba(223,223,223,1) 100%); */
     /* background: shade(@theme_bg_color,0.5);
     background: 
         linear-gradient(
@@ -133,10 +185,10 @@ label#default-state {
 
 label#movement {
     font-weight: bold;
+    font-feature-settings: "tnum";
+    /* font-variant-numeric: tabular-nums; */
     text-shadow: 0px 1px 3px rgba(0, 0, 0, 0.5);
 }
-
-
 
 label#standby {
     font-size: 300%;
@@ -144,6 +196,8 @@ label#standby {
     animation: pulsating 2.25s ease-in-out infinite;
     text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
 }
+
+
 
 .screen-display {
     background-image:
@@ -190,7 +244,7 @@ label#standby {
     100% {opacity: 1.00;}
 }
 
-label#repeat-counter {
+label#repeat-counter, grid#emblem {
     padding: 5px;
     padding-left: 9px;
     padding-right: 9px;
@@ -200,6 +254,14 @@ label#repeat-counter {
     border-color: alpha(@accent_color_700, 0.75);
     background-color: @accent_color_500;
 }
+
+grid#emblem {
+    border-style: solid;
+    border-width: 1px;
+    border-color: alpha(@accent_color_700, 0.25);
+    background-color: @accent_color_500;
+}
+
 
 label#settings-group-label {
     font-weight: bold;
@@ -216,4 +278,23 @@ frame#settings-group-frame {
     /* font-style: italic; */
     font-size: 0.9em;
     color: gray;
+}
+
+.animate-released {
+    animation: pressed-effect 1.25s ease-in-out infinite;
+}
+
+@keyframes pressed-effect {
+    25% {
+        margin: 4px;
+    	/* transform: scale(1.125); */
+	}
+    50% {
+        margin: 0px;
+	    /* transform: scale(1.0); */
+	}
+    75% {
+        margin: 2px;
+    	/* transform: scale(0.95); */
+	}
 }
