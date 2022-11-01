@@ -1,0 +1,5 @@
+keystrokes (1.0.2+git20211209-1) unstable; urgency=medium
+
+  * Initial debianization of package.
+
+ -- SwampRabbit <swamprabbit@mxlinux.org>  Wed, 08 Dec 2021 13:56:15 -0500

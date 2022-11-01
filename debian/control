@@ -1,0 +1,30 @@
+Source: keystrokes
+Section: Utilities
+Priority: optional
+Maintainer: SwampRabbit <swamprabbit@mxlinux.org>
+XSBC-Original-Maintainer: Adi Hezral <hezral@gmail.com>
+Build-Depends: debhelper-compat (= 13),
+               dh-python,
+               python3,
+               python3-gi,
+               meson,
+               libgranite-dev,
+               gettext,
+#               appstream-util
+Standards-Version: 4.5.1
+Homepage: https://github.com/hezral/keystrokes
+Rules-Requires-Root: no
+
+Package: keystrokes
+Architecture: any
+Depends: ${python3:Depends},
+         ${misc:Depends},
+         python3,
+         python3-gi,
+         python3-xlib,
+         python3-pynput,
+         gir1.2-granite-1.0,
+         gir1.2-handy-1,
+         libgranite5 | libgranite6
+Description: Simple on-screen keyboard and mouse keystrokes display
+ Simple but configurable on-screen keyboard and mouse keystrokes display
