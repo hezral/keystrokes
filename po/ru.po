@@ -1,18 +1,17 @@
-# Russian translation for keystrokes.
-# Copyright (C) 2022 keystrokes'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the keystrokes package.
+# Russian translations for com.github.hezral.keystrokes.
+# Copyright (C) 2022 Adi Hezral
+# This file is distributed under the same license as the com.github.hezral.keystrokes package.
 # lenemter <lenemter@gmail.com>, 2022.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: keystrokes\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: https://github.com/hezral/keystrokes/issues\n"
 "POT-Creation-Date: 2022-11-01 23:36+0900\n"
 "PO-Revision-Date: 2022-11-01 23:27+0900\n"
 "Last-Translator: lenemter <lenemter@gmail.com>\n"
 "Language-Team: none\n"
-"Language: \n"
+"Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
